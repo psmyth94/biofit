@@ -4,6 +4,7 @@ from typing import List, Optional, Type
 
 import biofit.config as config
 from biofit.integration.biosets import get_feature
+from biofit.integration.R.r_caller import RCaller
 from biofit.processing import SelectedColumnTypes, sync_backup_config
 from biofit.utils.types import Unset
 from biofit.visualization.plotting import BasePlotter, PlotterConfig
