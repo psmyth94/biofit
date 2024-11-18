@@ -1,0 +1,46 @@
+{% set name = "biofit" %}
+
+package:
+  name: "{{ name|lower }}"
+  version: "{{ BIOFIT_VERSION }}"
+
+source:
+  path: ../../
+
+build:
+  noarch: python
+requirements:
+  host:
+    - python
+    - pip
+  run:
+    - python
+    - pip
+    - biocore
+    - filelock
+    - numpy >=1.17
+    - pyarrow >=8.0.0
+    - pyarrow-hotfix
+    - dill >=0.3.0,<0.3.8
+    - pandas
+    - requests >=2.19.0
+    - tqdm >=4.62.1
+    - xxhash
+    - multiprocess
+    - fsspec[http] >=2023.1.0,<=2023.10.0
+    - packaging
+    - pyyaml >=5.1
+    - scikit-learn >=1.4.0
+test:
+  imports:
+    - biofit
+about:
+  home: https://github.com/psmyth94/biofit
+  license: Apache-2.0
+  license_file: LICENSE
+  summary: A Python package for machine learning on omics datasets.
+  keywords:
+    - omics
+    - machine learning
+    - bioinformatics
+    - datasets
