@@ -9,7 +9,7 @@
     <a href="https://github.com/psmyth94/biofit/tree/main/docs"><img alt="Documentation" src="https://img.shields.io/website/http/github/psmyth94/biofit/tree/main/docs.svg?down_color=red&down_message=offline&up_message=online"></a>
     <a href="https://github.com/psmyth94/biofit/releases"><img alt="GitHub release" src="https://img.shields.io/github/release/psmyth94/biofit.svg"></a>
     <a href="CODE_OF_CONDUCT.md"><img alt="Contributor Covenant" src="https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg"></a>
-    <a href="https://zenodo.org/records/14028772"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.14028772.svg" alt="DOI"></a>
+    <!-- <a href="https://zenodo.org/records/14028772"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.14028772.svg" alt="DOI"></a> -->
 </p>
 
 **Biofit** is a machine learning library designed for bioinformatics datasets. It
