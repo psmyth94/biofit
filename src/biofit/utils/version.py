@@ -112,4 +112,4 @@ def _version_tuple_to_str(version_tuple):
     return ".".join(str(v) for v in version_tuple)
 
 
-__version__ = "0.0.0"
+__version__ = "0.0.1"
