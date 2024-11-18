@@ -32,13 +32,19 @@ import pandas.api.types as pdt
 import pyarrow as pa
 from biocore import DataHandler, get_data_format
 from biocore.utils.import_util import (
-    is_polars_available,
-    is_ray_available,
     is_biosets_available,
     is_datasets_available,
+    is_polars_available,
+    is_ray_available,
 )
 from biocore.utils.inspect import get_kwargs, get_required_args
 from biocore.utils.naming import camelcase_to_snakecase
+from biocore.utils.py_util import (
+    is_bioset,
+    is_dataset,
+    is_dataset_dict,
+    is_iterable_dataset,
+)
 from sklearn.utils.validation import (
     NotFittedError,
 )
@@ -60,13 +66,6 @@ from biofit.utils import (
 from biofit.utils.file_utils import expand_path, is_remote_url
 from biofit.utils.fingerprint import Hasher, is_caching_enabled
 from biofit.utils.py_util import iflatmap_unordered
-from biocore.utils.py_util import (
-    is_bioset,
-    is_dataset,
-    is_dataset_dict,
-    is_iterable_dataset,
-)
-
 from biofit.utils.table_util import string_to_arrow
 
 if TYPE_CHECKING:
@@ -955,24 +954,16 @@ class ProcessorConfig(BaseConfig):
             data for transformation (e.g. selecting the same columns, etc.).
     """
 
-    output_format: str = field(default=None, kw_only=True, init=True, repr=False)
-    input_columns: SelectedColumnTypes = field(
-        default=None, kw_only=True, init=True, repr=False
-    )
-    unused_columns: SelectedColumnTypes = field(
-        default=None, kw_only=True, init=True, repr=False
-    )
-    keep_unused_columns: bool = field(default=True, kw_only=True, init=True, repr=False)
-    raise_if_missing: bool = field(default=True, kw_only=True, init=True, repr=False)
-    enable_caching: bool = field(default=True, kw_only=True, init=True, repr=False)
-    cache_output: bool = field(default=True, kw_only=True, init=True, repr=False)
-    load_from_cache_file: bool = field(
-        default=True, kw_only=True, init=True, repr=False
-    )
-    cache_dir: str = field(default=None, kw_only=True, init=True, repr=False)
-    version: str = field(
-        default=version.__version__, kw_only=True, init=True, repr=True
-    )
+    output_format: str = field(default=None, init=True, repr=False)
+    input_columns: SelectedColumnTypes = field(default=None, init=True, repr=False)
+    unused_columns: SelectedColumnTypes = field(default=None, init=True, repr=False)
+    keep_unused_columns: bool = field(default=True, init=True, repr=False)
+    raise_if_missing: bool = field(default=True, init=True, repr=False)
+    enable_caching: bool = field(default=True, init=True, repr=False)
+    cache_output: bool = field(default=True, init=True, repr=False)
+    load_from_cache_file: bool = field(default=True, init=True, repr=False)
+    cache_dir: str = field(default=None, init=True, repr=False)
+    version: str = field(default=version.__version__, init=True, repr=True)
 
     _fit_process_desc: str = field(
         default="Fitting the processor to the input data", init=False, repr=False
@@ -994,9 +985,7 @@ class ProcessorConfig(BaseConfig):
         default=None, init=False, repr=False
     )
 
-    _input_columns: SelectedColumnTypes = field(
-        default=None, kw_only=True, init=False, repr=False
-    )
+    _input_columns: SelectedColumnTypes = field(default=None, init=False, repr=False)
     features_out_suffix: str = field(default=None, init=False, repr=False)
     features_out_prefix: str = field(default=None, init=False, repr=False)
     processor_type: str = field(default="", init=False, repr=False)

@@ -10,6 +10,7 @@ from typing import List, Optional
 from biocore import DataHandler
 from biocore.utils.import_util import is_ipywidgets_available, is_matplotlib_available
 from biocore.utils.naming import camelcase_to_snakecase
+from biocore.utils.py_util import is_dataset_dict
 
 from biofit.integration.R.r_caller import RCaller
 from biofit.processing import (
@@ -25,7 +26,6 @@ from biofit.utils import (
     logging,
     move_temp_file,
 )
-from biocore.utils.py_util import is_dataset_dict
 from biofit.visualization.plotting_utils import (
     display_image_carousel,
     is_in_notebook,
@@ -57,15 +57,13 @@ def _processor_info_from_fingerprint(fingerprint: str):
 
 @dataclass
 class PlotterConfig(BaseConfig):
-    path: str = field(default=None, kw_only=True, init=True, repr=True)
-    device: str = field(default="pdf", kw_only=True, init=True, repr=False)
-    fingerprint: str = field(default=None, kw_only=True, init=True, repr=False)
-    unused_columns: SelectedColumnTypes = field(
-        default=None, kw_only=True, init=True, repr=False
-    )
-    raise_if_missing: bool = field(default=True, kw_only=True, init=True, repr=False)
-    cache_dir: str = field(default=None, kw_only=True, init=True, repr=False)
-    version: str = field(default="0.0.0", kw_only=True, init=True, repr=False)
+    path: str = field(default=None, init=True, repr=True)
+    device: str = field(default="pdf", init=True, repr=False)
+    fingerprint: str = field(default=None, init=True, repr=False)
+    unused_columns: SelectedColumnTypes = field(default=None, init=True, repr=False)
+    raise_if_missing: bool = field(default=True, init=True, repr=False)
+    cache_dir: str = field(default=None, init=True, repr=False)
+    version: str = field(default="0.0.0", init=True, repr=False)
 
     _input_columns: SelectedColumnTypes = field(default=None, init=False, repr=False)
     _compare: bool = field(default=False, init=False, repr=False)
