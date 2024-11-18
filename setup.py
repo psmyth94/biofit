@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 REQUIRED_PKGS = [
     # the library that biofit is built upon
-    "biocore>=1.1.0",
+    "biocore>=1.1.1",
     # For file locking
     "filelock",
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
