@@ -29,7 +29,7 @@ and configurable processing pipelines. Here are some of the main features of Bio
   - [CSR (SciPy)](https://github.com/scipy/scipy)
   - [Arrow](https://github.com/apache/arrow)
   - 🤗 [Datasets](https://github.com/huggingface/datasets)
-  - [biofit](https://github.com/psmyth94/biofit)
+  - [Biosets](https://github.com/psmyth94/biosets)
 - **Machine Learning Models:** Supports a wide range of machine learning models, including:
   - [Scikit-learn](https://github.com/scikit-learn/scikit-learn)
     - [Random Forest](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html)
