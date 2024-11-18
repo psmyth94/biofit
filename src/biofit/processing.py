@@ -2898,9 +2898,13 @@ class BaseProcessor(TransformationMixin):
         output_format = kwargs.get("output_format", None) or get_data_format(input)
         if output_format:
             if output is None:
+                _method_prefix = self._method_prefix
+                if self._method_prefix.startswith("_"):
+                    _method_prefix = _method_prefix[1:]
+
                 raise ValueError(
                     f"The output format is specified as `{output_format}` but the "
-                    f"output from the {self._method_prefix.removeprefix('_')} method "
+                    f"output from the {_method_prefix} method "
                     "is `None`."
                 )
             output = DataHandler.to_format(output, output_format)
@@ -3277,9 +3281,10 @@ class BaseProcessor(TransformationMixin):
             indent_at_name=True,
             n_max_elements_to_show=N_MAX_ELEMENTS_TO_SHOW,
         )
-        repr_ = self.__class__.__name__ + pp.pformat(self.config).removeprefix(
-            self.config.__class__.__name__
-        )
+        config_str = pp.pformat(self.config)
+        if config_str.startswith(self.config.__class__.__name__):
+            config_str = config_str[len(self.config.__class__.__name__) :]
+        repr_ = self.__class__.__name__ + config_str
         return repr_
 
     def _repr_mimebundle_(self, **kwargs):

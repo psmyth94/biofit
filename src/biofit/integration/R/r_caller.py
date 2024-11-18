@@ -556,7 +556,11 @@ class RCaller:
                 env = globalenv
             if add_globals:
                 for name, value in self._global_vars.items():
-                    env[name] = value.removeprefix('"').removesuffix('"')
+                    if value.endswith('"'):
+                        value = value[:-1]
+                    if value.startswith('"'):
+                        value = value[1:]
+                    env[name] = value
             results = code_runner(r_code)
             last_line = r_code.strip().split("\n")[-1].strip()
             # for some reason, arrow tables are not returned properly when letting
