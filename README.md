@@ -1,13 +1,13 @@
 <p align="center">
-    $${\Huge{\textbf{\textsf{\color{#2E8B57}Bio\color{#4682B4}fit}}}}$$
+    $${\Huge{\textbf{\textsf{\color{#2E8B57}Bio\color{red}fit}}}}$$
     <br/>
     <br/>
 </p>
 <p align="center">
-    <a href="https://github.com/psmyth94/biosets/actions/workflows/ci_cd_pipeline.yml?query=branch%3Amain"><img alt="Build" src="https://github.com/psmyth94/biosets/actions/workflows/ci_cd_pipeline.yml/badge.svg?branch=main"></a>
-    <a href="https://github.com/psmyth94/biosets/blob/main/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/psmyth94/biosets.svg?color=blue"></a>
-    <a href="https://github.com/psmyth94/biosets/tree/main/docs"><img alt="Documentation" src="https://img.shields.io/website/http/github/psmyth94/biosets/tree/main/docs.svg?down_color=red&down_message=offline&up_message=online"></a>
-    <a href="https://github.com/psmyth94/biosets/releases"><img alt="GitHub release" src="https://img.shields.io/github/release/psmyth94/biosets.svg"></a>
+    <a href="https://github.com/psmyth94/biofit/actions/workflows/ci_cd_pipeline.yml?query=branch%3Amain"><img alt="Build" src="https://github.com/psmyth94/biofit/actions/workflows/ci_cd_pipeline.yml/badge.svg?branch=main"></a>
+    <a href="https://github.com/psmyth94/biofit/blob/main/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/psmyth94/biofit.svg?color=blue"></a>
+    <a href="https://github.com/psmyth94/biofit/tree/main/docs"><img alt="Documentation" src="https://img.shields.io/website/http/github/psmyth94/biofit/tree/main/docs.svg?down_color=red&down_message=offline&up_message=online"></a>
+    <a href="https://github.com/psmyth94/biofit/releases"><img alt="GitHub release" src="https://img.shields.io/github/release/psmyth94/biofit.svg"></a>
     <a href="CODE_OF_CONDUCT.md"><img alt="Contributor Covenant" src="https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg"></a>
     <a href="https://zenodo.org/records/14028772"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.14028772.svg" alt="DOI"></a>
 </p>
@@ -29,7 +29,7 @@ and configurable processing pipelines. Here are some of the main features of Bio
   - [CSR (SciPy)](https://github.com/scipy/scipy)
   - [Arrow](https://github.com/apache/arrow)
   - 🤗 [Datasets](https://github.com/huggingface/datasets)
-  - [Biosets](https://github.com/psmyth94/biosets)
+  - [biofit](https://github.com/psmyth94/biofit)
 - **Machine Learning Models:** Supports a wide range of machine learning models, including:
   - [Scikit-learn](https://github.com/scikit-learn/scikit-learn)
     - [Random Forest](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html)
@@ -98,11 +98,11 @@ print(preprocessor)
 preprocessed_data = preprocessor.fit_transform(dataset)
 ```
 
-Biofit is made with Biosets in mind. You can pass the loaded dataset instead of a string
+Biofit is made with biofit in mind. You can pass the loaded dataset instead of a string
 to load the preprocessors:
 
 ```python
-from biosets import load_dataset
+from biofit import load_dataset
 
 dataset = load_dataset("csv", data_files="my_file.csv", experiment_type="snp")
 
@@ -120,7 +120,7 @@ Biofit allows you to create custom preprocessing pipelines using the
 `sklearn` and Biofit in a single operation:
 
 ```python
-from biosets import load_dataset
+from biofit import load_dataset
 from biofit.preprocessing import LogTransformer, PreprocessorPipeline
 from sklearn.preprocessing import StandardScaler
 
