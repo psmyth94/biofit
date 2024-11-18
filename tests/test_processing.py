@@ -1759,7 +1759,6 @@ class TestMockModel(unittest.TestCase):
     def test_prepare_transform_kwargs(self):
         combined_inputs = self.data
         orig_input = self.sample_metadata
-        extra_inputs = [self.X, self.y]
         selected_indices = list(range(self.data.shape[1]))
         extra_indices = [
             list(range(self.X.shape[1])),

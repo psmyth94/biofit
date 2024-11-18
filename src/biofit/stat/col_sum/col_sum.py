@@ -14,10 +14,9 @@ Note: The ColumnStatForOTU and RowSumStatForOTU classes are provided for autosta
 """
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Callable, List, Optional, Type
+from typing import TYPE_CHECKING, List, Type
 
 import numpy as np
-from biocore import DataHandler
 
 from biofit.integration.biosets import get_feature
 from biofit.processing import SelectedColumnTypes

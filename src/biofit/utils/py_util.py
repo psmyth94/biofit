@@ -16,7 +16,6 @@ import multiprocessing
 import os
 import queue
 import random
-import sys
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 from queue import Empty
