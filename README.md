@@ -98,11 +98,11 @@ print(preprocessor)
 preprocessed_data = preprocessor.fit_transform(dataset)
 ```
 
-Biofit is made with biofit in mind. You can pass the loaded dataset instead of a string
-to load the preprocessors:
+Biofit is made with [Biosets](https://github.com/psmyth94/biosets) in mind. You can
+pass the loaded dataset instead of a string to load the preprocessors:
 
 ```python
-from biofit import load_dataset
+from biosets import load_dataset
 
 dataset = load_dataset("csv", data_files="my_file.csv", experiment_type="snp")
 
