@@ -32,7 +32,7 @@ REQUIRED_PKGS = [
     # To parse YAML metadata from dataset cards
     "pyyaml>=5.1",
     # for processing and transforming datasets
-    "scikit-learn>=1.4.0",
+    "scikit-learn",
 ]
 
 QUALITY_REQUIRE = ["ruff>=0.1.5"]
