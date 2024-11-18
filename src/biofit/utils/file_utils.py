@@ -1,5 +1,9 @@
 """
-This file is adapted from the datasets library, which in turn is adapted from the AllenNLP library.
+Modified by: Patrick Smyth
+date: 2024
+Summary of changes:
+
+Removed the need of huggingface_hub
 
 datasets
 ~~~~~~~~
