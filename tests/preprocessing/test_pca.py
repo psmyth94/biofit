@@ -1,9 +1,11 @@
 import biofit.config
 import pandas as pd
 import pytest
+import sklearn
 from biocore.data_handling import DataHandler
 from biocore.utils.import_util import is_biosets_available
 from biofit.preprocessing import PCAFeatureExtractor
+from packaging import version
 
 from tests.utils import create_bioset
 
@@ -32,7 +34,12 @@ def test_pca_feature_extractor(count_data, sample_metadata, format):
     otu_dataset = pd.concat([sample_metadata, X, y], axis=1)
 
     proc = PCAFeatureExtractor(load_from_cache_file=load_from_cache_file)
-    expected = [-0.37224401, 1.02218086, -1.25448252, -0.22033803, -0.2220483]
+    if version.parse(sklearn.__version__) >= version.parse("1.4.0"):
+        expected = [-0.37224401, 1.02218086, -1.25448252, -0.22033803, -0.2220483]
+    else:
+        # For some reason, the second to last value is positive in previous scikit-learn
+        # Probably due to how the sign of the eigenvectors is determined.
+        expected = [-0.37224401, 1.02218086, -1.25448252, 0.22033803, -0.2220483]
 
     input_columns = list(X.columns)
     cache_dir = biofit.config.BIOFIT_CACHE_HOME
