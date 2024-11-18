@@ -1,6 +1,5 @@
 import sys
 from os import PathLike
-from types import NoneType
 from typing import List, Optional, Union
 
 import numpy as np
@@ -426,13 +425,13 @@ def plot_correlation(
             "pointbiserialr": "Point Biserial Correlation",
         }
         value_name = name_map.get(corr_stat.config.method, "Correlation")
-        if isinstance(groupby, (Unset, NoneType)):
+        if groupby is None or isinstance(groupby, Unset):
             groupby = "Features"
         corrs = corrs.melt(var_name=groupby, value_name=value_name)
         # drop na
         corrs = corrs.dropna()
         sorted_inds = np.argsort(np.abs(corrs[value_name]))[::-1]
-        if isinstance(top_k, (Unset, NoneType)):
+        if groupby is None or isinstance(top_k, Unset):
             top_k = 30
         corrs = corrs.iloc[sorted_inds[:top_k]]
         return generate_barplot(
