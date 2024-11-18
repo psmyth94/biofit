@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 from typing import List, Optional, Type
 
 from biocore import DataHandler
+from biocore.utils.py_util import is_bioset
 
 import biofit.config as config
 from biofit.integration.biosets import get_feature
@@ -181,12 +182,13 @@ class BarPlotter(BasePlotter):
         )
 
     def plot_dataset(self, x, y, group):
-        from datasets import Dataset as HfDataset
+        if is_bioset(x):
+            from biosets import decode
 
-        if isinstance(x, (Dataset, HfDataset)):
             x = decode(x)
-        if isinstance(group, (Dataset, HfDataset)):
+        if is_bioset(group):
             group = decode(group)
+
         return self.plot_arrow(
             DataHandler.to_arrow(x),
             DataHandler.to_arrow(y) if y is not None else None,
