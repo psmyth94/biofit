@@ -97,7 +97,7 @@ setup(
     author_email="psmyth1994@gmail.com",
     url="https://github.com/psmyth94/biofit",
     download_url="https://github.com/psmyth94/biofit/tags",
-    license="MIT",
+    license="Apache 2.0",
     package_dir={"": "src"},
     packages=find_packages("src"),
     include_package_data=True,
