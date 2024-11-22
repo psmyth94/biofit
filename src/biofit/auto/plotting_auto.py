@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, List, Union
 
 from biocore.utils.import_util import is_biosets_available
 from biocore.utils.inspect import get_kwargs
+from biocore.utils.py_util import is_bioset, is_dataset
 
 from biofit.auto.auto_factory import (
     _BaseAutoProcessorClass,
@@ -40,11 +41,7 @@ class PlotterPipeline:
         self.processors = processors
 
     def plot(self, X, *args, fit=True, **kwargs):
-        from datasets import Dataset, IterableDataset
-
-        from biofit import Bioset
-
-        if not isinstance(X, (Bioset, Dataset, IterableDataset)):
+        if not is_bioset(X) and not is_dataset(X):
             raise ValueError("X must be a Bioset or huggingface Dataset.")
         pre_X = X
         show = kwargs.pop("show", True)
@@ -108,7 +105,7 @@ class AutoPlotter(_BaseAutoProcessorClass):
 
     @classmethod
     def from_processor(
-        cls, processor, dataset_name=None, **kwargs
+        cls, processor, experiment_name=None, **kwargs
     ) -> Union[PlotterPipeline, BasePlotter]:
         """Create a processor from another processor.
 
@@ -120,7 +117,7 @@ class AutoPlotter(_BaseAutoProcessorClass):
         """
 
         def get_proc(proc, experiment_name=None, **kwargs):
-            experiment_name = experiment_name or proc.config.dataset_name
+            experiment_name = experiment_name or proc.config.experiment_name
             if experiment_name:
                 if is_biosets_available():
                     from biosets.packaged_modules import EXPERIMENT_TYPE_ALIAS
@@ -129,10 +126,7 @@ class AutoPlotter(_BaseAutoProcessorClass):
                 experiment_name = EXPERIMENT_TYPE_ALIAS.get(
                     experiment_name, experiment_name
                 )
-                _plotter_mapping = _LazyAutoMapping(
-                    EXPERIMENT_PLOTTER_CONFIG_MAPPING_NAMES.get(experiment_name),
-                    PLOTTER_MAPPING_NAMES,
-                )
+                _plotter_mapping = cls._experiment_mapping[experiment_name]
                 config = AutoPlotterConfig.for_processor(
                     proc.config.processor_name,
                     dataset_or_experiment=experiment_name,
@@ -147,7 +141,7 @@ class AutoPlotter(_BaseAutoProcessorClass):
             plotters = []
             for proc in processor.steps:
                 plotters.append(
-                    get_proc(proc[1], experiment_name=dataset_name, **kwargs)
+                    get_proc(proc[1], experiment_name=experiment_name, **kwargs)
                 )
             return PlotterPipeline(plotters, processor.processors)
         elif isinstance(processor, BaseProcessor):
