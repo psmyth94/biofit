@@ -263,17 +263,17 @@ def getattribute_from_module(module, attr):
         return getattr(module, attr)
     # Some of the mappings have entries estimator_type -> object of another model type. In that case we try to grab the
     # object at the top level.
-    genomicsml_module = importlib.import_module("biofit")
+    biofit_module = importlib.import_module("biofit")
 
-    if module != genomicsml_module:
+    if module != biofit_module:
         try:
-            return getattribute_from_module(genomicsml_module, attr)
+            return getattribute_from_module(biofit_module, attr)
         except ValueError:
             raise ValueError(
-                f"Could not find {attr} neither in {module} nor in {genomicsml_module}!"
+                f"Could not find {attr} neither in {module} nor in {biofit_module}!"
             )
     else:
-        raise ValueError(f"Could not find {attr} in {genomicsml_module}!")
+        raise ValueError(f"Could not find {attr} in {biofit_module}!")
 
 
 class _LazyAutoMapping(OrderedDict):

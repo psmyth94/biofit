@@ -758,8 +758,8 @@ class _LazyConfigMapping(OrderedDict):
         if hasattr(self._modules[module_name], value):
             return getattr(self._modules[module_name], value)
         try:
-            genomicsml_module = importlib.import_module("biofit")
-            return getattr(genomicsml_module, value)
+            biofit_module = importlib.import_module("biofit")
+            return getattr(biofit_module, value)
         except AttributeError:
             if is_transformers_available():
                 transformers_module = importlib.import_module("transformers")
