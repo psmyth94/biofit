@@ -1,13 +1,13 @@
 import unittest
 from unittest.mock import MagicMock
 
-from biofit.auto.processing_auto import AutoPreprocessor
 import biofit.config
 import pandas as pd
 import pytest
 from biocore.data_handling import DataHandler
 from biofit.auto.configuration_auto import AutoPlotterConfig, AutoPreprocessorConfig
 from biofit.auto.plotting_auto import AutoPlotter, PlotterPipeline
+from biofit.auto.processing_auto import AutoPreprocessor
 from biofit.processing import BaseProcessor, ProcessorConfig
 from biofit.visualization.plotting import BasePlotter, PlotterConfig
 
@@ -80,7 +80,7 @@ class MockPlotter2Config(PlotterConfig):
 
 
 class MockPlotterConfigForMockExperiment(MockPlotterConfig):
-    dataset_name = "mock_dataset"
+    experiment_name = "mock_dataset"
     custom_param = "test_value3"
 
 
@@ -308,9 +308,9 @@ class TestAutoPlotter(unittest.TestCase):
 
     def test_loading_with_kwargs_overwriting_default(self):
         # Arrange
-        dataset_name = "otu"
+        experiment_name = "otu"
         plotter_pipeline = AutoPlotter.for_experiment(
-            dataset_name, custom_param="overwritten_value"
+            experiment_name, custom_param="overwritten_value"
         )
 
         # Assert
@@ -321,7 +321,7 @@ class TestAutoPlotter(unittest.TestCase):
     def test_from_processor(self):
         # Arrange
         processor_mock = MagicMock(spec=BaseProcessor)
-        processor_mock.config.dataset_name = "test_dataset"
+        processor_mock.config.experiment_name = "test_dataset"
         config_mock = MagicMock(spec=AutoPlotterConfig)
         AutoPlotterConfig.for_processor = MagicMock(return_value=config_mock)
         lazy_auto_mapping_mock = {MockPlotter: MockPlotter(config_mock)}
