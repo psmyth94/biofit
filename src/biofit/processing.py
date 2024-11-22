@@ -1847,20 +1847,7 @@ class BaseProcessor(TransformationMixin):
     ):
         """Must be implemented by subclasses if the processor is trainable."""
         # only use this fit method if no concrete fit method is found
-        return self._process_fit(
-            X,
-            raise_if_missing=raise_if_missing,
-            cache_output=cache_output,
-            load_from_cache_file=load_from_cache_file,
-            batched=batched,
-            batch_size=batch_size,
-            batch_format=batch_format,
-            num_proc=num_proc,
-            map_kwargs=map_kwargs,
-            cache_dir=cache_dir,
-            cache_file_name=cache_file_name,
-            fingerprint=fingerprint,
-        )
+        raise NotImplementedError("Processor must implement `fit` method")
 
     def _process_fit(
         self,
@@ -2886,9 +2873,13 @@ class BaseProcessor(TransformationMixin):
         *args,
         **kwargs,
     ):
-        output_format = kwargs.pop("output_format", None)
-        return self.fit(X, *args, **kwargs).transform(
-            X, output_format=output_format, **kwargs
+        raise NotImplementedError(
+            "The `fit_transform` method is not implemented for this processor."
+        )
+
+    def transform(self, X, *args, **kwargs):
+        raise NotImplementedError(
+            "The `transform` method is not implemented for this processor."
         )
 
     def _process_transform_input(self, X, **kwargs):
