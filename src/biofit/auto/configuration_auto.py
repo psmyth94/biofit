@@ -2,16 +2,20 @@ import importlib
 import re
 import warnings
 from collections import OrderedDict
-from typing import List, Union
+from typing import TYPE_CHECKING, List, Union
 
 from biocore.utils.import_util import (
     is_biosets_available,
     is_transformers_available,
 )
 from biocore.utils.inspect import get_kwargs
+from biocore.utils.py_util import is_bioset
 
 from biofit.processing import ProcessorConfig
-from biofit.visualization.plotting import PlotterConfig
+
+if TYPE_CHECKING:
+    from biosets import Bioset
+
 
 PROCESSOR_MAPPING_NAMES = OrderedDict(
     [
@@ -36,9 +40,10 @@ PROCESSOR_MAPPING_NAMES = OrderedDict(
         ("log", "LogTransformer"),
         ("relative_abundance", "RelativeAbundanceScaler"),
         ("tmm", "TMMScaler"),
+        ("clr", "CLRScaler"),
         ("css", "CumulativeSumScaler"),
-        ("missing_labels", "MissingLabelsSampleFilter"),
         ("min_prevalence_sample_filter", "MinPrevalenceSampleFilter"),
+        ("missing_labels", "MissingLabelsSampleFilter"),
         ("row_abundance", "AbundanceSampleFilter"),
     ]
 )
@@ -46,6 +51,7 @@ PROCESSOR_MAPPING_NAMES = OrderedDict(
 PLOTTER_MAPPING_NAMES = OrderedDict(
     [
         ("pcoa", "PCoAFeatureExtractorPlotter"),
+        ("pca", "PCAFeatureExtractorPlotter"),
         ("min_prevalence_feature_selector", "MinPrevalenceFeatureSelectorPlotter"),
         ("relative_abundance", "RelativeAbundancePlotter"),
         ("css", "CumulativeSumScalerPlotter"),
@@ -77,9 +83,10 @@ CONFIG_MAPPING_NAMES = OrderedDict(
         ("log", "LogTransformerConfig"),
         ("relative_abundance", "RelativeAbundanceScalerConfig"),
         ("tmm", "TMMScalerConfig"),
+        ("clr", "CLRScalerConfig"),
         ("css", "CumulativeSumScalerConfig"),
-        ("missing_labels", "MissingLabelsSampleFilterConfig"),
         ("min_prevalence_sample_filter", "MinPrevalenceRowSampleFilterConfig"),
+        ("missing_labels", "MissingLabelsSampleFilterConfig"),
         ("row_abundance", "AbundanceSampleFilterConfig"),
     ]
 )
@@ -87,6 +94,7 @@ CONFIG_MAPPING_NAMES = OrderedDict(
 PLOTTER_CONFIG_MAPPING_NAMES = OrderedDict(
     [
         ("pcoa", "PCoAFeatureExtractorPlotterConfig"),
+        ("pca", "PCAFeatureExtractorPlotterConfig"),
         ("min_prevalence_feature_selector", "MinPrevalencePlotterConfig"),
         ("relative_abundance", "RelativeAbundancePlotterConfig"),
         ("css", "CumulativeSumScalerPlotterConfig"),
@@ -118,9 +126,10 @@ PROCESSOR_CATEGORY_MAPPING_NAMES = OrderedDict(
         ("log", "preprocessing"),
         ("relative_abundance", "preprocessing"),
         ("tmm", "preprocessing"),
+        ("clr", "preprocessing"),
         ("css", "preprocessing"),
-        ("missing_labels", "preprocessing"),
         ("min_prevalence_sample_filter", "preprocessing"),
+        ("missing_labels", "preprocessing"),
         ("row_abundance", "preprocessing"),
     ]
 )
@@ -136,14 +145,15 @@ PROCESSOR_TYPE_MAPPING_NAMES = OrderedDict(
         ("log", "transformation"),
         ("relative_abundance", "scaling"),
         ("tmm", "scaling"),
+        ("clr", "scaling"),
         ("css", "scaling"),
-        ("missing_labels", "filtering"),
         ("min_prevalence_sample_filter", "filtering"),
+        ("missing_labels", "filtering"),
         ("row_abundance", "filtering"),
     ]
 )
 
-METABOLOMICS_MAPPING_NAMES = OrderedDict(
+RNA_SEQ_MAPPING_NAMES = OrderedDict(
     [
         ("col_sum", "ColumnSumStatConfig"),
         ("row_sum", "RowSumStatConfig"),
@@ -166,10 +176,11 @@ METABOLOMICS_MAPPING_NAMES = OrderedDict(
         ("log", "LogTransformerConfig"),
         ("relative_abundance", "RelativeAbundanceScalerConfig"),
         ("tmm", "TMMScalerConfig"),
-        ("css", "CLRScalerConfig"),
+        ("clr", "CLRScalerConfig"),
+        ("css", "CumulativeSumScalerConfig"),
         ("imputation", "ImputationConfig"),
-        ("missing_labels", "MissingLabelsSampleFilterConfig"),
         ("min_prevalence_sample_filter", "MinPrevalenceRowSampleFilterConfig"),
+        ("missing_labels", "MissingLabelsSampleFilterConfig"),
         ("row_abundance", "AbundanceSampleFilterConfig"),
     ]
 )
@@ -197,72 +208,11 @@ KMER_MAPPING_NAMES = OrderedDict(
         ("log", "LogTransformerConfig"),
         ("relative_abundance", "RelativeAbundanceScalerConfig"),
         ("tmm", "TMMScalerConfig"),
-        ("css", "CLRScalerConfig"),
+        ("clr", "CLRScalerConfig"),
+        ("css", "CumulativeSumScalerConfig"),
         ("imputation", "ImputationConfig"),
-        ("missing_labels", "MissingLabelsSampleFilterConfig"),
         ("min_prevalence_sample_filter", "MinPrevalenceRowSampleFilterConfig"),
-        ("row_abundance", "AbundanceSampleFilterConfig"),
-    ]
-)
-
-MS1_MAPPING_NAMES = OrderedDict(
-    [
-        ("col_sum", "ColumnSumStatConfig"),
-        ("row_sum", "RowSumStatConfig"),
-        ("correlation", "CorrelationStatConfig"),
-        ("distance", "DistanceStatConfig"),
-        ("row_missingness", "RowMissingnessStatConfig"),
-        ("row_mean", "RowMeanStatConfig"),
-        ("col_missingness", "ColumnMissingnessStatConfig"),
-        ("col_mean", "ColumnMeanStatConfig"),
-        ("lightgbm", "LightGBMConfig"),
-        ("lasso", "LassoConfig"),
-        ("random_forest", "RandomForestConfig"),
-        ("logistic_regression", "LogisticRegressionConfig"),
-        ("pcoa", "PCoAFeatureExtractorConfig"),
-        ("pca", "PCAFeatureExtractorConfig"),
-        ("label_binarizing", "LabelBinarizerConfig"),
-        ("label_encoding", "LabelEncoderConfig"),
-        ("upsampling", "UpSamplerConfig"),
-        ("min_prevalence_feature_selector", "MinPrevalenceFeatureSelectorConfig"),
-        ("log", "LogTransformerConfig"),
-        ("relative_abundance", "RelativeAbundanceScalerConfig"),
-        ("tmm", "TMMScalerConfig"),
-        ("css", "CLRScalerConfig"),
-        ("imputation", "ImputationConfig"),
         ("missing_labels", "MissingLabelsSampleFilterConfig"),
-        ("min_prevalence_sample_filter", "MinPrevalenceRowSampleFilterConfig"),
-        ("row_abundance", "AbundanceSampleFilterConfig"),
-    ]
-)
-
-MALDI_MAPPING_NAMES = OrderedDict(
-    [
-        ("col_sum", "ColumnSumStatConfig"),
-        ("row_sum", "RowSumStatConfig"),
-        ("correlation", "CorrelationStatConfig"),
-        ("distance", "DistanceStatConfig"),
-        ("row_missingness", "RowMissingnessStatConfig"),
-        ("row_mean", "RowMeanStatConfig"),
-        ("col_missingness", "ColumnMissingnessStatConfig"),
-        ("col_mean", "ColumnMeanStatConfig"),
-        ("lightgbm", "LightGBMConfig"),
-        ("lasso", "LassoConfig"),
-        ("random_forest", "RandomForestConfig"),
-        ("logistic_regression", "LogisticRegressionConfig"),
-        ("pcoa", "PCoAFeatureExtractorConfig"),
-        ("pca", "PCAFeatureExtractorConfig"),
-        ("label_binarizing", "LabelBinarizerConfig"),
-        ("label_encoding", "LabelEncoderConfig"),
-        ("upsampling", "UpSamplerConfig"),
-        ("min_prevalence_feature_selector", "MinPrevalenceFeatureSelectorConfig"),
-        ("log", "LogTransformerConfig"),
-        ("relative_abundance", "RelativeAbundanceScalerConfig"),
-        ("tmm", "TMMScalerConfig"),
-        ("css", "CLRScalerConfig"),
-        ("imputation", "ImputationConfig"),
-        ("missing_labels", "MissingLabelsSampleFilterConfig"),
-        ("min_prevalence_sample_filter", "MinPrevalenceRowSampleFilterConfigForMaldi"),
         ("row_abundance", "AbundanceSampleFilterConfig"),
     ]
 )
@@ -290,15 +240,16 @@ BIODATA_MAPPING_NAMES = OrderedDict(
         ("log", "LogTransformerConfig"),
         ("relative_abundance", "RelativeAbundanceScalerConfig"),
         ("tmm", "TMMScalerConfig"),
-        ("css", "CLRScalerConfig"),
+        ("clr", "CLRScalerConfig"),
+        ("css", "CumulativeSumScalerConfig"),
         ("imputation", "ImputationConfig"),
-        ("missing_labels", "MissingLabelsSampleFilterConfig"),
         ("min_prevalence_sample_filter", "MinPrevalenceRowSampleFilterConfig"),
+        ("missing_labels", "MissingLabelsSampleFilterConfig"),
         ("row_abundance", "AbundanceSampleFilterConfig"),
     ]
 )
 
-RNA_SEQ_MAPPING_NAMES = OrderedDict(
+GENOMICS_MAPPING_NAMES = OrderedDict(
     [
         ("col_sum", "ColumnSumStatConfig"),
         ("row_sum", "RowSumStatConfig"),
@@ -321,10 +272,139 @@ RNA_SEQ_MAPPING_NAMES = OrderedDict(
         ("log", "LogTransformerConfig"),
         ("relative_abundance", "RelativeAbundanceScalerConfig"),
         ("tmm", "TMMScalerConfig"),
-        ("css", "CLRScalerConfig"),
+        ("clr", "CLRScalerConfig"),
+        ("css", "CumulativeSumScalerConfig"),
         ("imputation", "ImputationConfig"),
-        ("missing_labels", "MissingLabelsSampleFilterConfig"),
         ("min_prevalence_sample_filter", "MinPrevalenceRowSampleFilterConfig"),
+        ("missing_labels", "MissingLabelsSampleFilterConfig"),
+        ("row_abundance", "AbundanceSampleFilterConfig"),
+    ]
+)
+
+SNP_MAPPING_NAMES = OrderedDict(
+    [
+        ("col_sum", "ColumnSumStatConfig"),
+        ("row_sum", "RowSumStatConfig"),
+        ("correlation", "CorrelationStatConfig"),
+        ("distance", "DistanceStatConfigForSNP"),
+        ("row_missingness", "RowMissingnessStatConfigForSNP"),
+        ("row_mean", "RowMeanStatConfig"),
+        ("col_missingness", "ColumnMissingnessStatConfigForSNP"),
+        ("col_mean", "ColumnMeanStatConfig"),
+        ("lightgbm", "LightGBMConfig"),
+        ("lasso", "LassoConfig"),
+        ("random_forest", "RandomForestConfig"),
+        ("logistic_regression", "LogisticRegressionConfig"),
+        ("pcoa", "PCoAFeatureExtractorConfig"),
+        ("pca", "PCAFeatureExtractorConfig"),
+        ("label_binarizing", "LabelBinarizerConfig"),
+        ("label_encoding", "LabelEncoderConfig"),
+        ("upsampling", "UpSamplerConfigForSNP"),
+        ("min_prevalence_feature_selector", "MinPrevalenceFeatureSelectorConfigForSNP"),
+        ("log", "LogTransformerConfig"),
+        ("relative_abundance", "RelativeAbundanceScalerConfig"),
+        ("tmm", "TMMScalerConfig"),
+        ("clr", "CLRScalerConfig"),
+        ("css", "CumulativeSumScalerConfig"),
+        ("imputation", "ImputationConfig"),
+        ("min_prevalence_sample_filter", "MinPrevalenceRowSampleFilterConfigForSNP"),
+        ("missing_labels", "MissingLabelsSampleFilterConfig"),
+        ("row_abundance", "AbundanceSampleFilterConfig"),
+    ]
+)
+
+OTU_MAPPING_NAMES = OrderedDict(
+    [
+        ("col_sum", "ColumnSumStatConfigForOTU"),
+        ("row_sum", "RowSumStatConfigForOTU"),
+        ("correlation", "CorrelationStatConfig"),
+        ("distance", "DistanceStatConfigForOTU"),
+        ("row_missingness", "RowMissingnessStatConfigForOTU"),
+        ("row_mean", "RowMeanStatConfigForOTU"),
+        ("col_missingness", "ColumnMissingnessStatConfigForOTU"),
+        ("col_mean", "ColumnMeanStatConfigForOTU"),
+        ("lightgbm", "LightGBMConfig"),
+        ("lasso", "LassoConfigForOTU"),
+        ("random_forest", "RandomForestConfig"),
+        ("logistic_regression", "LogisticRegressionConfig"),
+        ("pcoa", "PCoAFeatureExtractorConfigForOTU"),
+        ("pca", "PCAFeatureExtractorConfig"),
+        ("label_binarizing", "LabelBinarizerConfig"),
+        ("label_encoding", "LabelEncoderConfig"),
+        ("upsampling", "UpSamplerConfigForOTU"),
+        ("min_prevalence_feature_selector", "MinPrevalenceFeatureSelectorConfigForOTU"),
+        ("log", "LogTransformerConfigForOTU"),
+        ("relative_abundance", "RelativeAbundanceScalerConfig"),
+        ("tmm", "TMMScalerConfig"),
+        ("clr", "CLRScalerConfig"),
+        ("css", "CumulativeSumScalerConfigForOTU"),
+        ("imputation", "ImputationConfig"),
+        ("min_prevalence_sample_filter", "MinPrevalenceRowSampleFilterConfigForOTU"),
+        ("missing_labels", "MissingLabelsSampleFilterConfig"),
+        ("row_abundance", "AbundanceSampleFilterConfigForOTU"),
+    ]
+)
+
+MALDI_MAPPING_NAMES = OrderedDict(
+    [
+        ("col_sum", "ColumnSumStatConfig"),
+        ("row_sum", "RowSumStatConfig"),
+        ("correlation", "CorrelationStatConfig"),
+        ("distance", "DistanceStatConfig"),
+        ("row_missingness", "RowMissingnessStatConfig"),
+        ("row_mean", "RowMeanStatConfig"),
+        ("col_missingness", "ColumnMissingnessStatConfig"),
+        ("col_mean", "ColumnMeanStatConfig"),
+        ("lightgbm", "LightGBMConfig"),
+        ("lasso", "LassoConfig"),
+        ("random_forest", "RandomForestConfig"),
+        ("logistic_regression", "LogisticRegressionConfig"),
+        ("pcoa", "PCoAFeatureExtractorConfig"),
+        ("pca", "PCAFeatureExtractorConfig"),
+        ("label_binarizing", "LabelBinarizerConfig"),
+        ("label_encoding", "LabelEncoderConfig"),
+        ("upsampling", "UpSamplerConfig"),
+        ("min_prevalence_feature_selector", "MinPrevalenceFeatureSelectorConfig"),
+        ("log", "LogTransformerConfig"),
+        ("relative_abundance", "RelativeAbundanceScalerConfig"),
+        ("tmm", "TMMScalerConfig"),
+        ("clr", "CLRScalerConfig"),
+        ("css", "CumulativeSumScalerConfig"),
+        ("imputation", "ImputationConfig"),
+        ("min_prevalence_sample_filter", "MinPrevalenceRowSampleFilterConfigForMaldi"),
+        ("missing_labels", "MissingLabelsSampleFilterConfig"),
+        ("row_abundance", "AbundanceSampleFilterConfig"),
+    ]
+)
+
+MS2_MAPPING_NAMES = OrderedDict(
+    [
+        ("col_sum", "ColumnSumStatConfig"),
+        ("row_sum", "RowSumStatConfig"),
+        ("correlation", "CorrelationStatConfig"),
+        ("distance", "DistanceStatConfig"),
+        ("row_missingness", "RowMissingnessStatConfig"),
+        ("row_mean", "RowMeanStatConfig"),
+        ("col_missingness", "ColumnMissingnessStatConfig"),
+        ("col_mean", "ColumnMeanStatConfig"),
+        ("lightgbm", "LightGBMConfig"),
+        ("lasso", "LassoConfig"),
+        ("random_forest", "RandomForestConfig"),
+        ("logistic_regression", "LogisticRegressionConfig"),
+        ("pcoa", "PCoAFeatureExtractorConfig"),
+        ("pca", "PCAFeatureExtractorConfig"),
+        ("label_binarizing", "LabelBinarizerConfig"),
+        ("label_encoding", "LabelEncoderConfig"),
+        ("upsampling", "UpSamplerConfig"),
+        ("min_prevalence_feature_selector", "MinPrevalenceFeatureSelectorConfig"),
+        ("log", "LogTransformerConfig"),
+        ("relative_abundance", "RelativeAbundanceScalerConfig"),
+        ("tmm", "TMMScalerConfig"),
+        ("clr", "CLRScalerConfig"),
+        ("css", "CumulativeSumScalerConfig"),
+        ("imputation", "ImputationConfig"),
+        ("min_prevalence_sample_filter", "MinPrevalenceRowSampleFilterConfig"),
+        ("missing_labels", "MissingLabelsSampleFilterConfig"),
         ("row_abundance", "AbundanceSampleFilterConfig"),
     ]
 )
@@ -352,10 +432,11 @@ PROTEOMICS_MAPPING_NAMES = OrderedDict(
         ("log", "LogTransformerConfig"),
         ("relative_abundance", "RelativeAbundanceScalerConfig"),
         ("tmm", "TMMScalerConfig"),
-        ("css", "CLRScalerConfig"),
+        ("clr", "CLRScalerConfig"),
+        ("css", "CumulativeSumScalerConfig"),
         ("imputation", "ImputationConfig"),
-        ("missing_labels", "MissingLabelsSampleFilterConfig"),
         ("min_prevalence_sample_filter", "MinPrevalenceRowSampleFilterConfig"),
+        ("missing_labels", "MissingLabelsSampleFilterConfig"),
         ("row_abundance", "AbundanceSampleFilterConfig"),
     ]
 )
@@ -385,16 +466,17 @@ METAGENOMICS_MAPPING_NAMES = OrderedDict(
         ),
         ("log", "LogTransformerConfig"),
         ("relative_abundance", "RelativeAbundanceScalerConfig"),
-        ("tmm", "TMMScalerConfigForMetagenomics"),
+        ("tmm", "TMMScalerConfig"),
+        ("clr", "CLRScalerConfig"),
         ("css", "CumulativeSumScalerConfigForMetagenomics"),
         ("imputation", "ImputationConfig"),
-        ("missing_labels", "MissingLabelsSampleFilterConfig"),
         ("min_prevalence_sample_filter", "MinPrevalenceRowSampleFilterConfig"),
+        ("missing_labels", "MissingLabelsSampleFilterConfig"),
         ("row_abundance", "AbundanceSampleFilterConfig"),
     ]
 )
 
-MS2_MAPPING_NAMES = OrderedDict(
+MS1_MAPPING_NAMES = OrderedDict(
     [
         ("col_sum", "ColumnSumStatConfig"),
         ("row_sum", "RowSumStatConfig"),
@@ -417,46 +499,16 @@ MS2_MAPPING_NAMES = OrderedDict(
         ("log", "LogTransformerConfig"),
         ("relative_abundance", "RelativeAbundanceScalerConfig"),
         ("tmm", "TMMScalerConfig"),
-        ("css", "CLRScalerConfig"),
+        ("clr", "CLRScalerConfig"),
+        ("css", "CumulativeSumScalerConfig"),
         ("imputation", "ImputationConfig"),
-        ("missing_labels", "MissingLabelsSampleFilterConfig"),
         ("min_prevalence_sample_filter", "MinPrevalenceRowSampleFilterConfig"),
+        ("missing_labels", "MissingLabelsSampleFilterConfig"),
         ("row_abundance", "AbundanceSampleFilterConfig"),
     ]
 )
 
-OTU_MAPPING_NAMES = OrderedDict(
-    [
-        ("col_sum", "ColumnSumStatConfigForOTU"),
-        ("row_sum", "RowSumStatConfigForOTU"),
-        ("correlation", "CorrelationStatConfig"),
-        ("distance", "DistanceStatConfigForOTU"),
-        ("row_missingness", "RowMissingnessStatConfigForOTU"),
-        ("row_mean", "RowMeanStatConfigForOTU"),
-        ("col_missingness", "ColumnMissingnessStatConfigForOTU"),
-        ("col_mean", "ColumnMeanStatConfigForOTU"),
-        ("lightgbm", "LightGBMConfig"),
-        ("lasso", "LassoConfigForOTU"),
-        ("random_forest", "RandomForestConfig"),
-        ("logistic_regression", "LogisticRegressionConfig"),
-        ("pcoa", "PCoAFeatureExtractorConfigForOTU"),
-        ("pca", "PCAFeatureExtractorConfig"),
-        ("label_binarizing", "LabelBinarizerConfig"),
-        ("label_encoding", "LabelEncoderConfig"),
-        ("upsampling", "UpSamplerConfigForOTU"),
-        ("min_prevalence_feature_selector", "MinPrevalenceFeatureSelectorConfigForOTU"),
-        ("log", "LogTransformerConfigForOTU"),
-        ("relative_abundance", "RelativeAbundanceScalerConfig"),
-        ("tmm", "TMMScalerConfigForOTU"),
-        ("css", "CumulativeSumScalerConfigForOTU"),
-        ("imputation", "ImputationConfig"),
-        ("missing_labels", "MissingLabelsSampleFilterConfig"),
-        ("min_prevalence_sample_filter", "MinPrevalenceRowSampleFilterConfigForOTU"),
-        ("row_abundance", "AbundanceSampleFilterConfigForOTU"),
-    ]
-)
-
-GENOMICS_MAPPING_NAMES = OrderedDict(
+METABOLOMICS_MAPPING_NAMES = OrderedDict(
     [
         ("col_sum", "ColumnSumStatConfig"),
         ("row_sum", "RowSumStatConfig"),
@@ -479,48 +531,19 @@ GENOMICS_MAPPING_NAMES = OrderedDict(
         ("log", "LogTransformerConfig"),
         ("relative_abundance", "RelativeAbundanceScalerConfig"),
         ("tmm", "TMMScalerConfig"),
-        ("css", "CLRScalerConfig"),
+        ("clr", "CLRScalerConfig"),
+        ("css", "CumulativeSumScalerConfig"),
         ("imputation", "ImputationConfig"),
-        ("missing_labels", "MissingLabelsSampleFilterConfig"),
         ("min_prevalence_sample_filter", "MinPrevalenceRowSampleFilterConfig"),
-        ("row_abundance", "AbundanceSampleFilterConfig"),
-    ]
-)
-
-SNP_MAPPING_NAMES = OrderedDict(
-    [
-        ("col_sum", "ColumnSumStatConfig"),
-        ("row_sum", "RowSumStatConfig"),
-        ("correlation", "CorrelationStatConfig"),
-        ("distance", "DistanceStatConfigForSNP"),
-        ("row_missingness", "RowMissingnessStatConfigForSNP"),
-        ("row_mean", "RowMeanStatConfig"),
-        ("col_missingness", "ColumnMissingnessStatConfigForSNP"),
-        ("col_mean", "ColumnMeanStatConfig"),
-        ("lightgbm", "LightGBMConfig"),
-        ("lasso", "LassoConfig"),
-        ("random_forest", "RandomForestConfig"),
-        ("logistic_regression", "LogisticRegressionConfig"),
-        ("pcoa", "PCoAFeatureExtractorConfig"),
-        ("pca", "PCAFeatureExtractorConfig"),
-        ("label_binarizing", "LabelBinarizerConfig"),
-        ("label_encoding", "LabelEncoderConfig"),
-        ("upsampling", "UpSamplerConfigForSNP"),
-        ("min_prevalence_feature_selector", "MinPrevalenceFeatureSelectorConfigForSNP"),
-        ("log", "LogTransformerConfig"),
-        ("relative_abundance", "RelativeAbundanceScalerConfig"),
-        ("tmm", "TMMScalerConfigForSNP"),
-        ("css", "CLRScalerConfig"),
-        ("imputation", "ImputationConfig"),
         ("missing_labels", "MissingLabelsSampleFilterConfig"),
-        ("min_prevalence_sample_filter", "MinPrevalenceRowSampleFilterConfigForSNP"),
         ("row_abundance", "AbundanceSampleFilterConfig"),
     ]
 )
 
-METABOLOMICS_PLOTTER_MAPPING_NAMES = OrderedDict(
+RNA_SEQ_PLOTTER_MAPPING_NAMES = OrderedDict(
     [
         ("pcoa", "PCoAFeatureExtractorPlotterConfig"),
+        ("pca", "PCAFeatureExtractorPlotterConfig"),
         ("min_prevalence_feature_selector", "MinPrevalencePlotterConfig"),
         ("relative_abundance", "RelativeAbundancePlotterConfig"),
         ("css", "CumulativeSumScalerPlotterConfig"),
@@ -532,6 +555,7 @@ METABOLOMICS_PLOTTER_MAPPING_NAMES = OrderedDict(
 KMER_PLOTTER_MAPPING_NAMES = OrderedDict(
     [
         ("pcoa", "PCoAFeatureExtractorPlotterConfig"),
+        ("pca", "PCAFeatureExtractorPlotterConfig"),
         ("min_prevalence_feature_selector", "MinPrevalencePlotterConfigForGenomics"),
         ("relative_abundance", "RelativeAbundancePlotterConfig"),
         ("css", "CumulativeSumScalerPlotterConfigForGenomics"),
@@ -540,20 +564,58 @@ KMER_PLOTTER_MAPPING_NAMES = OrderedDict(
     ]
 )
 
-MS1_PLOTTER_MAPPING_NAMES = OrderedDict(
+BIODATA_PLOTTER_MAPPING_NAMES = OrderedDict(
     [
         ("pcoa", "PCoAFeatureExtractorPlotterConfig"),
-        ("min_prevalence_feature_selector", "MinPrevalencePlotterConfigForProteomics"),
+        ("pca", "PCAFeatureExtractorPlotterConfig"),
+        ("min_prevalence_feature_selector", "MinPrevalencePlotterConfig"),
         ("relative_abundance", "RelativeAbundancePlotterConfig"),
         ("css", "CumulativeSumScalerPlotterConfig"),
-        ("min_prevalence_sample_filter", "MinPrevalenceRowPlotterConfigForProteomics"),
-        ("row_abundance", "AbundanceSampleFilterPlotterConfigForProteomics"),
+        ("min_prevalence_sample_filter", "MinPrevalenceRowPlotterConfig"),
+        ("row_abundance", "AbundanceSampleFilterPlotterConfig"),
+    ]
+)
+
+GENOMICS_PLOTTER_MAPPING_NAMES = OrderedDict(
+    [
+        ("pcoa", "PCoAFeatureExtractorPlotterConfig"),
+        ("pca", "PCAFeatureExtractorPlotterConfig"),
+        ("min_prevalence_feature_selector", "MinPrevalencePlotterConfigForGenomics"),
+        ("relative_abundance", "RelativeAbundancePlotterConfig"),
+        ("css", "CumulativeSumScalerPlotterConfigForGenomics"),
+        ("min_prevalence_sample_filter", "MinPrevalenceRowPlotterConfigForGenomics"),
+        ("row_abundance", "AbundanceSampleFilterPlotterConfigForGenomics"),
+    ]
+)
+
+SNP_PLOTTER_MAPPING_NAMES = OrderedDict(
+    [
+        ("pcoa", "PCoAFeatureExtractorPlotterConfig"),
+        ("pca", "PCAFeatureExtractorPlotterConfig"),
+        ("min_prevalence_feature_selector", "MinPrevalencePlotterConfigForSNP"),
+        ("relative_abundance", "RelativeAbundancePlotterConfigForSNP"),
+        ("css", "CumulativeSumScalerPlotterConfigForSNP"),
+        ("min_prevalence_sample_filter", "MinPrevalenceRowPlotterConfigForSNP"),
+        ("row_abundance", "AbundanceSampleFilterPlotterConfigForSNP"),
+    ]
+)
+
+OTU_PLOTTER_MAPPING_NAMES = OrderedDict(
+    [
+        ("pcoa", "PCoAFeatureExtractorPlotterConfig"),
+        ("pca", "PCAFeatureExtractorPlotterConfig"),
+        ("min_prevalence_feature_selector", "MinPrevalencePlotterConfigForOTU"),
+        ("relative_abundance", "RelativeAbundancePlotterConfigForOTU"),
+        ("css", "CumulativeSumScalerPlotterConfigForOTU"),
+        ("min_prevalence_sample_filter", "MinPrevalenceRowPlotterConfigForOTU"),
+        ("row_abundance", "AbundanceSampleFilterPlotterConfigForOTU"),
     ]
 )
 
 MALDI_PLOTTER_MAPPING_NAMES = OrderedDict(
     [
         ("pcoa", "PCoAFeatureExtractorPlotterConfig"),
+        ("pca", "PCAFeatureExtractorPlotterConfig"),
         ("min_prevalence_feature_selector", "MinPrevalencePlotterConfigForMaldi"),
         ("relative_abundance", "RelativeAbundancePlotterConfigForMaldi"),
         ("css", "CumulativeSumScalerPlotterConfig"),
@@ -562,31 +624,22 @@ MALDI_PLOTTER_MAPPING_NAMES = OrderedDict(
     ]
 )
 
-BIODATA_PLOTTER_MAPPING_NAMES = OrderedDict(
+MS2_PLOTTER_MAPPING_NAMES = OrderedDict(
     [
         ("pcoa", "PCoAFeatureExtractorPlotterConfig"),
-        ("min_prevalence_feature_selector", "MinPrevalencePlotterConfig"),
+        ("pca", "PCAFeatureExtractorPlotterConfig"),
+        ("min_prevalence_feature_selector", "MinPrevalencePlotterConfigForProteomics"),
         ("relative_abundance", "RelativeAbundancePlotterConfig"),
         ("css", "CumulativeSumScalerPlotterConfig"),
-        ("min_prevalence_sample_filter", "MinPrevalenceRowPlotterConfig"),
-        ("row_abundance", "AbundanceSampleFilterPlotterConfig"),
-    ]
-)
-
-RNA_SEQ_PLOTTER_MAPPING_NAMES = OrderedDict(
-    [
-        ("pcoa", "PCoAFeatureExtractorPlotterConfig"),
-        ("min_prevalence_feature_selector", "MinPrevalencePlotterConfig"),
-        ("relative_abundance", "RelativeAbundancePlotterConfig"),
-        ("css", "CumulativeSumScalerPlotterConfig"),
-        ("min_prevalence_sample_filter", "MinPrevalenceRowPlotterConfig"),
-        ("row_abundance", "AbundanceSampleFilterPlotterConfig"),
+        ("min_prevalence_sample_filter", "MinPrevalenceRowPlotterConfigForProteomics"),
+        ("row_abundance", "AbundanceSampleFilterPlotterConfigForProteomics"),
     ]
 )
 
 PROTEOMICS_PLOTTER_MAPPING_NAMES = OrderedDict(
     [
         ("pcoa", "PCoAFeatureExtractorPlotterConfig"),
+        ("pca", "PCAFeatureExtractorPlotterConfig"),
         ("min_prevalence_feature_selector", "MinPrevalencePlotterConfigForProteomics"),
         ("relative_abundance", "RelativeAbundancePlotterConfig"),
         ("css", "CumulativeSumScalerPlotterConfig"),
@@ -598,6 +651,7 @@ PROTEOMICS_PLOTTER_MAPPING_NAMES = OrderedDict(
 METAGENOMICS_PLOTTER_MAPPING_NAMES = OrderedDict(
     [
         ("pcoa", "PCoAFeatureExtractorPlotterConfig"),
+        ("pca", "PCAFeatureExtractorPlotterConfig"),
         (
             "min_prevalence_feature_selector",
             "MinPrevalencePlotterConfigForMetagenomics",
@@ -612,9 +666,10 @@ METAGENOMICS_PLOTTER_MAPPING_NAMES = OrderedDict(
     ]
 )
 
-MS2_PLOTTER_MAPPING_NAMES = OrderedDict(
+MS1_PLOTTER_MAPPING_NAMES = OrderedDict(
     [
         ("pcoa", "PCoAFeatureExtractorPlotterConfig"),
+        ("pca", "PCAFeatureExtractorPlotterConfig"),
         ("min_prevalence_feature_selector", "MinPrevalencePlotterConfigForProteomics"),
         ("relative_abundance", "RelativeAbundancePlotterConfig"),
         ("css", "CumulativeSumScalerPlotterConfig"),
@@ -623,49 +678,39 @@ MS2_PLOTTER_MAPPING_NAMES = OrderedDict(
     ]
 )
 
-OTU_PLOTTER_MAPPING_NAMES = OrderedDict(
+METABOLOMICS_PLOTTER_MAPPING_NAMES = OrderedDict(
     [
         ("pcoa", "PCoAFeatureExtractorPlotterConfig"),
-        ("min_prevalence_feature_selector", "MinPrevalencePlotterConfigForOTU"),
-        ("relative_abundance", "RelativeAbundancePlotterConfigForOTU"),
-        ("css", "CumulativeSumScalerPlotterConfigForOTU"),
-        ("min_prevalence_sample_filter", "MinPrevalenceRowPlotterConfigForOTU"),
-        ("row_abundance", "AbundanceSampleFilterPlotterConfigForOTU"),
-    ]
-)
-
-GENOMICS_PLOTTER_MAPPING_NAMES = OrderedDict(
-    [
-        ("pcoa", "PCoAFeatureExtractorPlotterConfig"),
-        ("min_prevalence_feature_selector", "MinPrevalencePlotterConfigForGenomics"),
+        ("pca", "PCAFeatureExtractorPlotterConfig"),
+        ("min_prevalence_feature_selector", "MinPrevalencePlotterConfig"),
         ("relative_abundance", "RelativeAbundancePlotterConfig"),
-        ("css", "CumulativeSumScalerPlotterConfigForGenomics"),
-        ("min_prevalence_sample_filter", "MinPrevalenceRowPlotterConfigForGenomics"),
-        ("row_abundance", "AbundanceSampleFilterPlotterConfigForGenomics"),
-    ]
-)
-
-SNP_PLOTTER_MAPPING_NAMES = OrderedDict(
-    [
-        ("pcoa", "PCoAFeatureExtractorPlotterConfig"),
-        ("min_prevalence_feature_selector", "MinPrevalencePlotterConfigForSNP"),
-        ("relative_abundance", "RelativeAbundancePlotterConfigForSNP"),
-        ("css", "CumulativeSumScalerPlotterConfigForSNP"),
-        ("min_prevalence_sample_filter", "MinPrevalenceRowPlotterConfigForSNP"),
-        ("row_abundance", "AbundanceSampleFilterPlotterConfigForSNP"),
+        ("css", "CumulativeSumScalerPlotterConfig"),
+        ("min_prevalence_sample_filter", "MinPrevalenceRowPlotterConfig"),
+        ("row_abundance", "AbundanceSampleFilterPlotterConfig"),
     ]
 )
 
 
-def config_class_to_model_type(config):
+def config_class_to_processor_name(config, mapping_names, mapping):
     """Converts a config class name to the corresponding model type"""
-    for key, cls in CONFIG_MAPPING_NAMES.items():
+    for key, cls in mapping_names.items():
         if cls == config:
             return key
-    for key, cls in CONFIG_MAPPING._extra_content.items():
+    for key, cls in mapping._extra_content.items():
         if cls.__name__ == config:
             return key
     return None
+
+
+def get_experiment_name(dataset: Union[str, "Bioset"]):
+    if is_biosets_available():
+        from biosets.packaged_modules import EXPERIMENT_TYPE_ALIAS
+    else:
+        EXPERIMENT_TYPE_ALIAS = {}
+    if is_bioset(dataset):
+        dataset = dataset._info.builder_name
+    dataset = EXPERIMENT_TYPE_ALIAS.get(dataset, dataset)
+    return dataset
 
 
 class _LazyConfigMapping(OrderedDict):
@@ -713,8 +758,8 @@ class _LazyConfigMapping(OrderedDict):
         if hasattr(self._modules[module_name], value):
             return getattr(self._modules[module_name], value)
         try:
-            biofit_module = importlib.import_module("biofit")
-            return getattr(biofit_module, value)
+            genomicsml_module = importlib.import_module("biofit")
+            return getattr(genomicsml_module, value)
         except AttributeError:
             if is_transformers_available():
                 transformers_module = importlib.import_module("transformers")
@@ -753,94 +798,94 @@ class _LazyConfigMapping(OrderedDict):
 
 CONFIG_MAPPING = _LazyConfigMapping(CONFIG_MAPPING_NAMES)
 PLOTTER_CONFIG_MAPPING = _LazyConfigMapping(PLOTTER_CONFIG_MAPPING_NAMES)
-METABOLOMICS_MAPPING = _LazyConfigMapping(METABOLOMICS_MAPPING_NAMES)
-KMER_MAPPING = _LazyConfigMapping(KMER_MAPPING_NAMES)
-MS1_MAPPING = _LazyConfigMapping(MS1_MAPPING_NAMES)
-MALDI_MAPPING = _LazyConfigMapping(MALDI_MAPPING_NAMES)
-BIODATA_MAPPING = _LazyConfigMapping(BIODATA_MAPPING_NAMES)
 RNA_SEQ_MAPPING = _LazyConfigMapping(RNA_SEQ_MAPPING_NAMES)
-PROTEOMICS_MAPPING = _LazyConfigMapping(PROTEOMICS_MAPPING_NAMES)
-METAGENOMICS_MAPPING = _LazyConfigMapping(METAGENOMICS_MAPPING_NAMES)
-MS2_MAPPING = _LazyConfigMapping(MS2_MAPPING_NAMES)
-OTU_MAPPING = _LazyConfigMapping(OTU_MAPPING_NAMES)
+KMER_MAPPING = _LazyConfigMapping(KMER_MAPPING_NAMES)
+BIODATA_MAPPING = _LazyConfigMapping(BIODATA_MAPPING_NAMES)
 GENOMICS_MAPPING = _LazyConfigMapping(GENOMICS_MAPPING_NAMES)
 SNP_MAPPING = _LazyConfigMapping(SNP_MAPPING_NAMES)
-METABOLOMICS_PLOTTER_MAPPING = _LazyConfigMapping(METABOLOMICS_PLOTTER_MAPPING_NAMES)
-KMER_PLOTTER_MAPPING = _LazyConfigMapping(KMER_PLOTTER_MAPPING_NAMES)
-MS1_PLOTTER_MAPPING = _LazyConfigMapping(MS1_PLOTTER_MAPPING_NAMES)
-MALDI_PLOTTER_MAPPING = _LazyConfigMapping(MALDI_PLOTTER_MAPPING_NAMES)
-BIODATA_PLOTTER_MAPPING = _LazyConfigMapping(BIODATA_PLOTTER_MAPPING_NAMES)
+OTU_MAPPING = _LazyConfigMapping(OTU_MAPPING_NAMES)
+MALDI_MAPPING = _LazyConfigMapping(MALDI_MAPPING_NAMES)
+MS2_MAPPING = _LazyConfigMapping(MS2_MAPPING_NAMES)
+PROTEOMICS_MAPPING = _LazyConfigMapping(PROTEOMICS_MAPPING_NAMES)
+METAGENOMICS_MAPPING = _LazyConfigMapping(METAGENOMICS_MAPPING_NAMES)
+MS1_MAPPING = _LazyConfigMapping(MS1_MAPPING_NAMES)
+METABOLOMICS_MAPPING = _LazyConfigMapping(METABOLOMICS_MAPPING_NAMES)
 RNA_SEQ_PLOTTER_MAPPING = _LazyConfigMapping(RNA_SEQ_PLOTTER_MAPPING_NAMES)
-PROTEOMICS_PLOTTER_MAPPING = _LazyConfigMapping(PROTEOMICS_PLOTTER_MAPPING_NAMES)
-METAGENOMICS_PLOTTER_MAPPING = _LazyConfigMapping(METAGENOMICS_PLOTTER_MAPPING_NAMES)
-MS2_PLOTTER_MAPPING = _LazyConfigMapping(MS2_PLOTTER_MAPPING_NAMES)
-OTU_PLOTTER_MAPPING = _LazyConfigMapping(OTU_PLOTTER_MAPPING_NAMES)
+KMER_PLOTTER_MAPPING = _LazyConfigMapping(KMER_PLOTTER_MAPPING_NAMES)
+BIODATA_PLOTTER_MAPPING = _LazyConfigMapping(BIODATA_PLOTTER_MAPPING_NAMES)
 GENOMICS_PLOTTER_MAPPING = _LazyConfigMapping(GENOMICS_PLOTTER_MAPPING_NAMES)
 SNP_PLOTTER_MAPPING = _LazyConfigMapping(SNP_PLOTTER_MAPPING_NAMES)
+OTU_PLOTTER_MAPPING = _LazyConfigMapping(OTU_PLOTTER_MAPPING_NAMES)
+MALDI_PLOTTER_MAPPING = _LazyConfigMapping(MALDI_PLOTTER_MAPPING_NAMES)
+MS2_PLOTTER_MAPPING = _LazyConfigMapping(MS2_PLOTTER_MAPPING_NAMES)
+PROTEOMICS_PLOTTER_MAPPING = _LazyConfigMapping(PROTEOMICS_PLOTTER_MAPPING_NAMES)
+METAGENOMICS_PLOTTER_MAPPING = _LazyConfigMapping(METAGENOMICS_PLOTTER_MAPPING_NAMES)
+MS1_PLOTTER_MAPPING = _LazyConfigMapping(MS1_PLOTTER_MAPPING_NAMES)
+METABOLOMICS_PLOTTER_MAPPING = _LazyConfigMapping(METABOLOMICS_PLOTTER_MAPPING_NAMES)
 
 
-DATASET_TO_MAPPER = {
-    "metabolomics": METABOLOMICS_MAPPING,
-    "kmer": KMER_MAPPING,
-    "ms1": MS1_MAPPING,
-    "maldi": MALDI_MAPPING,
-    "biodata": BIODATA_MAPPING,
+EXPERIMENT_CONFIG_MAPPING = {
     "rna-seq": RNA_SEQ_MAPPING,
-    "proteomics": PROTEOMICS_MAPPING,
-    "metagenomics": METAGENOMICS_MAPPING,
-    "ms2": MS2_MAPPING,
-    "otu": OTU_MAPPING,
+    "kmer": KMER_MAPPING,
+    "biodata": BIODATA_MAPPING,
     "genomics": GENOMICS_MAPPING,
     "snp": SNP_MAPPING,
+    "otu": OTU_MAPPING,
+    "maldi": MALDI_MAPPING,
+    "ms2": MS2_MAPPING,
+    "proteomics": PROTEOMICS_MAPPING,
+    "metagenomics": METAGENOMICS_MAPPING,
+    "ms1": MS1_MAPPING,
+    "metabolomics": METABOLOMICS_MAPPING,
 }
 
-DATASET_TO_MAPPER_NAMES = {
-    "metabolomics": METABOLOMICS_MAPPING_NAMES,
-    "kmer": KMER_MAPPING_NAMES,
-    "ms1": MS1_MAPPING_NAMES,
-    "maldi": MALDI_MAPPING_NAMES,
-    "biodata": BIODATA_MAPPING_NAMES,
+EXPERIMENT_CONFIG_MAPPING_NAMES = {
     "rna-seq": RNA_SEQ_MAPPING_NAMES,
-    "proteomics": PROTEOMICS_MAPPING_NAMES,
-    "metagenomics": METAGENOMICS_MAPPING_NAMES,
-    "ms2": MS2_MAPPING_NAMES,
-    "otu": OTU_MAPPING_NAMES,
+    "kmer": KMER_MAPPING_NAMES,
+    "biodata": BIODATA_MAPPING_NAMES,
     "genomics": GENOMICS_MAPPING_NAMES,
     "snp": SNP_MAPPING_NAMES,
+    "otu": OTU_MAPPING_NAMES,
+    "maldi": MALDI_MAPPING_NAMES,
+    "ms2": MS2_MAPPING_NAMES,
+    "proteomics": PROTEOMICS_MAPPING_NAMES,
+    "metagenomics": METAGENOMICS_MAPPING_NAMES,
+    "ms1": MS1_MAPPING_NAMES,
+    "metabolomics": METABOLOMICS_MAPPING_NAMES,
 }
 
-DATASET_PLT_TO_MAPPER = {
-    "metabolomics": METABOLOMICS_PLOTTER_MAPPING,
-    "kmer": KMER_PLOTTER_MAPPING,
-    "ms1": MS1_PLOTTER_MAPPING,
-    "maldi": MALDI_PLOTTER_MAPPING,
-    "biodata": BIODATA_PLOTTER_MAPPING,
+EXPERIMENT_PLOTTER_CONFIG_MAPPING = {
     "rna-seq": RNA_SEQ_PLOTTER_MAPPING,
-    "proteomics": PROTEOMICS_PLOTTER_MAPPING,
-    "metagenomics": METAGENOMICS_PLOTTER_MAPPING,
-    "ms2": MS2_PLOTTER_MAPPING,
-    "otu": OTU_PLOTTER_MAPPING,
+    "kmer": KMER_PLOTTER_MAPPING,
+    "biodata": BIODATA_PLOTTER_MAPPING,
     "genomics": GENOMICS_PLOTTER_MAPPING,
     "snp": SNP_PLOTTER_MAPPING,
+    "otu": OTU_PLOTTER_MAPPING,
+    "maldi": MALDI_PLOTTER_MAPPING,
+    "ms2": MS2_PLOTTER_MAPPING,
+    "proteomics": PROTEOMICS_PLOTTER_MAPPING,
+    "metagenomics": METAGENOMICS_PLOTTER_MAPPING,
+    "ms1": MS1_PLOTTER_MAPPING,
+    "metabolomics": METABOLOMICS_PLOTTER_MAPPING,
 }
 
-DATASET_PLT_TO_MAPPER_NAMES = {
-    "metabolomics": METABOLOMICS_PLOTTER_MAPPING_NAMES,
-    "kmer": KMER_PLOTTER_MAPPING_NAMES,
-    "ms1": MS1_PLOTTER_MAPPING_NAMES,
-    "maldi": MALDI_PLOTTER_MAPPING_NAMES,
-    "biodata": BIODATA_PLOTTER_MAPPING_NAMES,
+EXPERIMENT_PLOTTER_CONFIG_MAPPING_NAMES = {
     "rna-seq": RNA_SEQ_PLOTTER_MAPPING_NAMES,
-    "proteomics": PROTEOMICS_PLOTTER_MAPPING_NAMES,
-    "metagenomics": METAGENOMICS_PLOTTER_MAPPING_NAMES,
-    "ms2": MS2_PLOTTER_MAPPING_NAMES,
-    "otu": OTU_PLOTTER_MAPPING_NAMES,
+    "kmer": KMER_PLOTTER_MAPPING_NAMES,
+    "biodata": BIODATA_PLOTTER_MAPPING_NAMES,
     "genomics": GENOMICS_PLOTTER_MAPPING_NAMES,
     "snp": SNP_PLOTTER_MAPPING_NAMES,
+    "otu": OTU_PLOTTER_MAPPING_NAMES,
+    "maldi": MALDI_PLOTTER_MAPPING_NAMES,
+    "ms2": MS2_PLOTTER_MAPPING_NAMES,
+    "proteomics": PROTEOMICS_PLOTTER_MAPPING_NAMES,
+    "metagenomics": METAGENOMICS_PLOTTER_MAPPING_NAMES,
+    "ms1": MS1_PLOTTER_MAPPING_NAMES,
+    "metabolomics": METABOLOMICS_PLOTTER_MAPPING_NAMES,
 }
 
 
-DATASET_PREPROCESSOR_MAPPING_NAMES = OrderedDict(
+EXPERIMENT_PREPROCESSOR_MAPPING_NAMES = OrderedDict(
     [
         (
             "otu",
@@ -1083,17 +1128,16 @@ class AutoConfig:
 
     @classmethod
     def for_processor(
-        cls, model_type: str, *args, experiment_type: str = None, **kwargs
+        cls,
+        model_type: str,
+        *args,
+        dataset_or_experiment: Union[str, "Bioset"] = None,
+        **kwargs,
     ):
-        if is_biosets_available():
-            from biosets.packaged_modules import EXPERIMENT_TYPE_ALIAS
-        else:
-            EXPERIMENT_TYPE_ALIAS = {}
-
-        experiment_type = EXPERIMENT_TYPE_ALIAS.get(experiment_type, experiment_type)
-        if experiment_type is not None:
-            if experiment_type in DATASET_TO_MAPPER:
-                mapper = DATASET_TO_MAPPER[experiment_type]
+        if dataset_or_experiment is not None:
+            experiment_name = get_experiment_name(dataset_or_experiment)
+            if experiment_name in EXPERIMENT_CONFIG_MAPPING:
+                mapper = EXPERIMENT_CONFIG_MAPPING[experiment_name]
                 if model_type in mapper:
                     _config_class = mapper[model_type]
                     return _config_class(*args, **kwargs)
@@ -1153,6 +1197,36 @@ class AutoConfig:
             )
         CONFIG_MAPPING.register(processor_type, config, exist_ok=exist_ok)
 
+    @staticmethod
+    def register_experiment(experiment_name, processor_names, configs, exist_ok=False):
+        """
+        Register a new configuration for this class.
+
+        Args:
+            model_type (`str`): The model type like "bert" or "gpt".
+            config ([`PretrainedConfig`]): The config to register.
+        """
+        if not isinstance(configs, (list, tuple)):
+            configs = [configs]
+        if not isinstance(processor_names, (list, tuple)):
+            processor_names = [processor_names]
+
+        EXPERIMENT_CONFIG_MAPPING[experiment_name] = EXPERIMENT_CONFIG_MAPPING.get(
+            experiment_name, _LazyConfigMapping(OrderedDict())
+        )
+
+        for processor_name, config in zip(processor_names, configs):
+            if (
+                processor_name in EXPERIMENT_CONFIG_MAPPING[experiment_name]
+                and not exist_ok
+            ):
+                raise ValueError(
+                    f"'{processor_name}' is already used by a processor config, pick another name."
+                )
+            EXPERIMENT_CONFIG_MAPPING[experiment_name].register(
+                processor_name, config, exist_ok=exist_ok
+            )
+
 
 class AutoPlotterConfig:
     """
@@ -1163,16 +1237,11 @@ class AutoPlotterConfig:
     """
 
     @classmethod
-    def for_dataset(cls, dataset_name: str, *args, **kwargs):
-        if is_biosets_available():
-            from biosets.packaged_modules import EXPERIMENT_TYPE_ALIAS
-        else:
-            EXPERIMENT_TYPE_ALIAS = {}
-
-        dataset_name = EXPERIMENT_TYPE_ALIAS.get(dataset_name, dataset_name)
-        if dataset_name in DATASET_PREPROCESSOR_MAPPING_NAMES:
-            preprocessors = DATASET_PREPROCESSOR_MAPPING_NAMES[dataset_name]
-            mapper = DATASET_PLT_TO_MAPPER[dataset_name]
+    def for_experiment(cls, experiment: Union[str, "Bioset"], *args, **kwargs):
+        experiment = get_experiment_name(experiment)
+        if experiment in EXPERIMENT_PREPROCESSOR_MAPPING_NAMES:
+            preprocessors = EXPERIMENT_PREPROCESSOR_MAPPING_NAMES[experiment]
+            mapper = EXPERIMENT_PLOTTER_CONFIG_MAPPING[experiment]
             classes = []
             for preprocessor in preprocessors:
                 _config_class = mapper[preprocessor]
@@ -1180,22 +1249,45 @@ class AutoPlotterConfig:
             return classes
 
         raise ValueError(
-            f"Unrecognized dataset identifier: {dataset_name}. Should contain one of {', '.join(DATASET_PREPROCESSOR_MAPPING_NAMES.keys())}"
+            f"Unrecognized dataset identifier: {experiment}. Should contain one of {', '.join(EXPERIMENT_PREPROCESSOR_MAPPING_NAMES.keys())}"
+        )
+
+    @classmethod
+    def from_dataset(cls, dataset: "Bioset", *args, **kwargs):
+        return cls.from_bioset(dataset, *args, **kwargs)
+
+    @classmethod
+    def from_bioset(cls, bioset: "Bioset", *args, **kwargs):
+        if is_bioset(bioset):
+            bioset = bioset._info.builder_name
+        else:
+            raise ValueError("Dataset should be a `biosets.Bioset` instance.")
+
+        if bioset in EXPERIMENT_PREPROCESSOR_MAPPING_NAMES:
+            preprocessors = EXPERIMENT_PREPROCESSOR_MAPPING_NAMES[bioset]
+            mapper = EXPERIMENT_PLOTTER_CONFIG_MAPPING[bioset]
+            classes = []
+            for preprocessor in preprocessors:
+                _config_class = mapper[preprocessor]
+                classes.append(_config_class(*args, **kwargs))
+            return classes
+
+        raise ValueError(
+            f"Unrecognized dataset identifier: {bioset}. Should contain one of {', '.join(EXPERIMENT_PREPROCESSOR_MAPPING_NAMES.keys())}"
         )
 
     @classmethod
     def for_processor(
-        cls, processor_type: str, *args, dataset_name: str = None, **kwargs
+        cls,
+        processor_type: str,
+        *args,
+        dataset_or_experiment: Union[str, "Bioset"] = None,
+        **kwargs,
     ):
-        if dataset_name is not None:
-            if is_biosets_available():
-                from biosets.packaged_modules import EXPERIMENT_TYPE_ALIAS
-            else:
-                EXPERIMENT_TYPE_ALIAS = {}
-
-            dataset_name = EXPERIMENT_TYPE_ALIAS.get(dataset_name, dataset_name)
-            if dataset_name in DATASET_PLT_TO_MAPPER:
-                mapper = DATASET_PLT_TO_MAPPER[dataset_name]
+        if dataset_or_experiment is not None:
+            experiment_name = get_experiment_name(dataset_or_experiment)
+            if experiment_name in EXPERIMENT_PLOTTER_CONFIG_MAPPING:
+                mapper = EXPERIMENT_PLOTTER_CONFIG_MAPPING[experiment_name]
                 if processor_type in mapper:
                     _config_class = mapper[processor_type]
                     return _config_class(*args, **kwargs)
@@ -1220,7 +1312,7 @@ class AutoPlotterConfig:
         )
 
     @staticmethod
-    def register(processor_type, config, exist_ok=False):
+    def register_experiment(experiment_name, processor_names, configs, exist_ok=False):
         """
         Register a new configuration for this class.
 
@@ -1228,15 +1320,21 @@ class AutoPlotterConfig:
             model_type (`str`): The model type like "bert" or "gpt".
             config ([`PretrainedConfig`]): The config to register.
         """
-        types = PlotterConfig
-        config_processor_type = getattr(
-            config, "processor_type", getattr(config, "model_type", None)
-        )
-        if issubclass(config, types) and config_processor_type != processor_type:
-            raise ValueError(
-                f"The config you are passing has a `model_type` attribute that is not consistent with the model type you passed (config has {config_processor_type} and you passed {processor_type}. Fix one of those so they match!"
+        if not isinstance(configs, (list, tuple)):
+            configs = [configs]
+        if not isinstance(processor_names, (list, tuple)):
+            processor_names = [processor_names]
+
+        EXPERIMENT_PLOTTER_CONFIG_MAPPING[experiment_name] = (
+            EXPERIMENT_PLOTTER_CONFIG_MAPPING.get(
+                experiment_name, _LazyConfigMapping(OrderedDict())
             )
-        PLOTTER_CONFIG_MAPPING.register(processor_type, config, exist_ok=exist_ok)
+        )
+
+        for processor_name, config in zip(processor_names, configs):
+            EXPERIMENT_PLOTTER_CONFIG_MAPPING[experiment_name].register(
+                processor_name, config, exist_ok=exist_ok
+            )
 
 
 class AutoPreprocessorConfig(AutoConfig):
@@ -1248,16 +1346,11 @@ class AutoPreprocessorConfig(AutoConfig):
     """
 
     @classmethod
-    def for_dataset(cls, dataset_name: str, *args, **kwargs):
-        if is_biosets_available():
-            from biosets.packaged_modules import EXPERIMENT_TYPE_ALIAS
-        else:
-            EXPERIMENT_TYPE_ALIAS = {}
-
-        dataset_name = EXPERIMENT_TYPE_ALIAS.get(dataset_name, dataset_name)
-        if dataset_name in DATASET_PREPROCESSOR_MAPPING_NAMES:
-            preprocessors = DATASET_PREPROCESSOR_MAPPING_NAMES[dataset_name]
-            mapper = DATASET_TO_MAPPER[dataset_name]
+    def for_experiment(cls, experiment: Union[str, "Bioset"], *args, **kwargs):
+        experiment = get_experiment_name(experiment)
+        if experiment in EXPERIMENT_PREPROCESSOR_MAPPING_NAMES:
+            preprocessors = EXPERIMENT_PREPROCESSOR_MAPPING_NAMES[experiment]
+            mapper = EXPERIMENT_CONFIG_MAPPING[experiment]
             classes = []
             for preprocessor in preprocessors:
                 _config_class = mapper[preprocessor]
@@ -1265,5 +1358,33 @@ class AutoPreprocessorConfig(AutoConfig):
             return classes
 
         raise ValueError(
-            f"Unrecognized dataset identifier: {dataset_name}. Should contain one of {', '.join(DATASET_PREPROCESSOR_MAPPING_NAMES.keys())}"
+            f"Unrecognized dataset identifier: {experiment}. Should contain one of {', '.join(EXPERIMENT_PREPROCESSOR_MAPPING_NAMES.keys())}"
         )
+
+    @classmethod
+    def register_pipeline(cls, experiment_name, preprocessor_names, exist_ok=False):
+        """
+        Register list of processors for an experiment.
+        """
+        if not isinstance(preprocessor_names, (list, tuple)):
+            preprocessor_names = [preprocessor_names]
+
+        if experiment_name in EXPERIMENT_PREPROCESSOR_MAPPING_NAMES and not exist_ok:
+            raise ValueError(
+                f"The pipeline for experiment {experiment_name} already exists. "
+                "Use `exist_ok=True` to overwrite."
+            )
+        if experiment_name not in EXPERIMENT_CONFIG_MAPPING:
+            raise ValueError(
+                f"Experiment {experiment_name} does not have any configuration "
+                "registered. Please register it via `AutoConfig.register_experiment`."
+            )
+
+        for preprocessor_name in preprocessor_names:
+            if preprocessor_name not in EXPERIMENT_CONFIG_MAPPING[experiment_name]:
+                raise ValueError(
+                    f"Preprocessor {preprocessor_name} is not registered for "
+                    f"experiment {experiment_name}. Please register it via "
+                    "`AutoConfig.register_experiment`."
+                )
+        EXPERIMENT_PREPROCESSOR_MAPPING_NAMES[experiment_name] = preprocessor_names
