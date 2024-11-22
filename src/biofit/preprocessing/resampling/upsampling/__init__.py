@@ -4,4 +4,5 @@ from .upsampling import (
     UpSampler,
     UpSamplerConfigForOTU,
     UpSamplerConfigForSNP,
+    UpSamplerConfigForMetagenomics,
 )
