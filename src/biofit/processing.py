@@ -1742,8 +1742,8 @@ class BaseProcessor(TransformationMixin):
         processor_suffix = f"-{self.config.processor_name}"
         if self.config.processor_type:
             processor_suffix += f"-{self.config.processor_type}"
-        if self.config.dataset_name:
-            processor_suffix += f"-{self.config.dataset_name}"
+        if self.config.experiment_name:
+            processor_suffix += f"-{self.config.experiment_name}"
         return f"{base_fingerprint}{processor_suffix}"
 
     def _reset(self, config: ProcessorConfig):
