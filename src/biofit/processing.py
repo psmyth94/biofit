@@ -1393,30 +1393,29 @@ class TransformationMixin:
             col_names = DataHandler.get_column_names(X, generate_cols=True)
             col_names_set = set(col_names)
             if input_columns:
-                if isinstance(input_columns, tuple) or isinstance(input_columns, type):
+                if (
+                    isinstance(input_columns, tuple)
+                    and isinstance(input_columns[0], type)
+                ) or isinstance(input_columns, type):
                     feature_type = input_columns
                     if isinstance(feature_type, type):
                         feature_type = (feature_type,)
 
-                    if is_datasets_available():
-                        from datasets.features.features import _FEATURE_TYPES
+                    try:
+                        input_columns = DataHandler.get_column_names_by_feature_type(
+                            X, feature_type=feature_type
+                        )
+                        if len(input_columns) == 0:
+                            input_columns = None
+                    except ValueError:
+                        if generate_cols:
+                            input_columns = DataHandler.get_column_names(
+                                X, generate_cols=True
+                            )
+                        else:
+                            input_columns = None
 
-                        if all(f in _FEATURE_TYPES.values() for f in feature_type):
-                            try:
-                                input_columns = (
-                                    DataHandler.get_column_names_by_feature_type(
-                                        X, feature_type=feature_type
-                                    )
-                                )
-                            except ValueError:
-                                if generate_cols:
-                                    input_columns = DataHandler.get_column_names(
-                                        X, generate_cols=True
-                                    )
-                                else:
-                                    input_columns = None
-
-                elif input_columns:
+                else:
                     if isinstance(input_columns, (str, int)):
                         input_columns = [input_columns]
                     if not isinstance(input_columns[0], int):
@@ -1429,7 +1428,7 @@ class TransformationMixin:
                             input_columns = [
                                 c for c in input_columns if c in col_names_set
                             ]
-            elif unused_columns:
+            if input_columns is None and unused_columns:
                 if isinstance(unused_columns, (str, int)):
                     unused_columns = [unused_columns]
                 if isinstance(unused_columns, tuple) or isinstance(
@@ -1458,7 +1457,8 @@ class TransformationMixin:
                 if unused_columns is not None:
                     unused_columns = set(unused_columns)
                     input_columns = [c for c in col_names if c not in unused_columns]
-            elif generate_cols:
+
+            if (input_columns is None or len(input_columns) == 0) and generate_cols:
                 input_columns = DataHandler.get_column_names(X, generate_cols=True)
 
             if input_columns:
