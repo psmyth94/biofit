@@ -7,13 +7,12 @@ from pathlib import Path
 from typing import List, Optional, Type, Union
 from unittest.mock import patch
 
+import biofit.config
 import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pytest
 from biocore import DataHandler
-
-import biofit.config
 from biofit.integration.biosets import get_feature
 from biofit.processing import (
     BaseProcessor,
@@ -24,6 +23,7 @@ from biofit.processing import (
 )
 from biofit.utils import version
 from biofit.utils.fingerprint import generate_cache_dir
+
 from tests.utils import create_bioset, require_biosets, require_datasets
 
 # Mock feature types for testing purposes
@@ -81,12 +81,12 @@ class MockModel(BaseProcessor):
     Implements the necessary _fit_* and _predict_* methods.
     """
 
-    config_class = MockProcessorConfig
+    _config_class = MockProcessorConfig
     config: MockProcessorConfig
 
     def __init__(self, config: Optional[MockProcessorConfig] = None, **kwargs):
         # Initialize the BaseProcessor with the given configuration
-        super().__init__(config=config or self.config_class(**kwargs))
+        super().__init__(config=config or self._config_class(**kwargs))
         self.post_fit = lambda x: x
 
     @sync_backup_config
@@ -258,7 +258,7 @@ class MockPreprocessor(BaseProcessor):
     Implements the necessary _fit_* and _predict_* methods.
     """
 
-    config_class = MockProcessorConfig
+    _config_class = MockProcessorConfig
     config: MockProcessorConfig
 
     def __init__(self, config: Optional[MockProcessorConfig] = None, **kwargs):
