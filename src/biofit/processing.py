@@ -896,7 +896,7 @@ class ProcessorConfig(BaseConfig):
             The name of the processor (e.g. select_k_best, min_max_scaler,
             simple_imputer, etc.). Used for auto class instantiation. Must be the same
             as the module name where the processor is defined.
-        dataset_name (str, *optional*):
+        experiment_name (str, *optional*):
             The name of the dataset the processor is applied to. Used for auto class
             instantiation based on the type of the dataset. A `None` value implies that
             the processor is not dataset-specific.
@@ -1046,7 +1046,7 @@ class ProcessorConfig(BaseConfig):
         states["features_out_prefix"] = self.features_out_prefix
         states["processor_name"] = self.processor_name
         states["processor_type"] = self.processor_type
-        states["dataset_name"] = self.dataset_name
+        states["experiment_name"] = self.experiment_name
         return states
 
     @classmethod
