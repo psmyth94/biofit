@@ -46,7 +46,7 @@ class RelativeAbundanceScaler(Scaler):
     """
 
     output_dtype = "float64"
-    config_class = RelativeAbundanceScalerConfig
+    _config_class = RelativeAbundanceScalerConfig
     config: RelativeAbundanceScalerConfig
 
     def __init__(

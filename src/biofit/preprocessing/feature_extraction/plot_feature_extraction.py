@@ -15,5 +15,5 @@ class FeatureExtractorPlotterConfig(PlotterConfig):
 class FeatureExtractorPlotter(BasePlotter):
     """Base class for feature extraction processors."""
 
-    config_class = FeatureExtractorPlotterConfig
+    _config_class = FeatureExtractorPlotterConfig
     config: FeatureExtractorPlotterConfig

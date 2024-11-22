@@ -17,7 +17,7 @@ class FeatureSelectorConfig(ProcessorConfig):
 class FeatureSelector(BaseProcessor):
     """Base class for feature selection processors."""
 
-    config_class = FeatureSelectorConfig
+    _config_class = FeatureSelectorConfig
     config: FeatureSelectorConfig
 
     def run(self, X, runner=None, fn_kwargs: dict = {}, **map_kwargs):

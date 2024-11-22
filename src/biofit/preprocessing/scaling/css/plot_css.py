@@ -68,7 +68,7 @@ class CumulativeSumScalerPlotterConfigForMetagenomics(CumulativeSumScalerPlotter
         init=False,
         repr=False,
     )
-    dataset_name: str = field(default="metagenomics", init=False, repr=False)
+    experiment_name: str = field(default="metagenomics", init=False, repr=False)
     log_num: Optional[str] = "log2_1p"
 
 
@@ -84,7 +84,7 @@ class CumulativeSumScalerPlotterConfigForOTU(CumulativeSumScalerPlotterConfig):
         init=False,
         repr=False,
     )
-    dataset_name: str = field(default="otu", init=False, repr=False)
+    experiment_name: str = field(default="otu", init=False, repr=False)
     ylab: Optional[str] = "OTU Abundance"
     log_num: Optional[str] = "log10_1p"
 
@@ -101,7 +101,7 @@ class CumulativeSumScalerPlotterConfigForASV(CumulativeSumScalerPlotterConfig):
         init=False,
         repr=False,
     )
-    dataset_name: str = field(default="asv", init=False, repr=False)
+    experiment_name: str = field(default="asv", init=False, repr=False)
 
 
 @dataclass
@@ -126,7 +126,7 @@ class CumulativeSumScalerPlotterConfigForGenomics(CumulativeSumScalerPlotterConf
         init=False,
         repr=False,
     )
-    dataset_name: str = field(default="genomics", init=False, repr=False)
+    experiment_name: str = field(default="genomics", init=False, repr=False)
 
 
 @dataclass
@@ -151,7 +151,7 @@ class CumulativeSumScalerPlotterConfigForSNP(CumulativeSumScalerPlotterConfig):
         init=False,
         repr=False,
     )
-    dataset_name: str = field(default="snp", init=False, repr=False)
+    experiment_name: str = field(default="snp", init=False, repr=False)
 
 
 @dataclass
@@ -176,11 +176,11 @@ class CumulativeSumScalerPlotterConfigForReadCount(CumulativeSumScalerPlotterCon
         init=False,
         repr=False,
     )
-    dataset_name: str = field(default="read_count", init=False, repr=False)
+    experiment_name: str = field(default="read_count", init=False, repr=False)
 
 
 class CumulativeSumScalerPlotter(ScalerPlotter):
-    config_class = CumulativeSumScalerPlotterConfig
+    _config_class = CumulativeSumScalerPlotterConfig
     config: CumulativeSumScalerPlotterConfig
 
     def __init__(

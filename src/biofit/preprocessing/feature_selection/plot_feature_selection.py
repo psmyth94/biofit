@@ -16,5 +16,5 @@ class FeatureSelectorPlotterConfig(PlotterConfig):
 
 
 class FeatureSelectorPlotter(BasePlotter):
-    config_class = FeatureSelectorPlotterConfig
+    _config_class = FeatureSelectorPlotterConfig
     config: FeatureSelectorPlotterConfig

@@ -77,7 +77,7 @@ class LogisticRegressionConfig(ModelConfig):
 
 
 class LogisticRegressionModel(Model):
-    config_class = LogisticRegressionConfig
+    _config_class = LogisticRegressionConfig
     config: LogisticRegressionConfig
     logistic_regression: LogisticRegression
 

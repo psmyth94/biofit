@@ -4,13 +4,13 @@ import re
 from collections import defaultdict
 from pathlib import Path
 
-from biofit import DATASET_NAME_TO_OMIC_TYPE
+from biosets.packaged_modules import EXPERIMENT_TYPE_TO_OMIC_TYPE
 
-OMIC_TYPE_TO_DATASET_NAMES = defaultdict(list)
-ALL_DATASET_NAMES = set()
-for dataset_name, omic_type in DATASET_NAME_TO_OMIC_TYPE.items():
-    OMIC_TYPE_TO_DATASET_NAMES[omic_type].append(dataset_name)
-    ALL_DATASET_NAMES.add(dataset_name)
+OMIC_TYPE_TO_EXPERIMENT_TYPE = defaultdict(list)
+ALL_EXPERIMENTS = set()
+for experiment_name, omic_type in EXPERIMENT_TYPE_TO_OMIC_TYPE.items():
+    OMIC_TYPE_TO_EXPERIMENT_TYPE[omic_type].append(experiment_name)
+    ALL_EXPERIMENTS.add(experiment_name)
 
 
 class ClassFinder(ast.NodeVisitor):
@@ -74,7 +74,7 @@ class ClassFinder(ast.NodeVisitor):
 def finalize_configs(classes):
     out = {}
     for key, value in classes.items():
-        module_prefix, base_id, processor_type, processor_name, dataset_name = value
+        module_prefix, base_id, processor_type, processor_name, experiment_name = value
         if base_id in classes:
             _base_id = base_id
             while not processor_type:
@@ -89,7 +89,7 @@ def finalize_configs(classes):
                     _, _base_id, _, processor_name, _ = classes[_base_id]
                 except KeyError:
                     break
-        out[key] = (module_prefix, processor_type, processor_name, dataset_name)
+        out[key] = (module_prefix, processor_type, processor_name, experiment_name)
     return out
 
 
@@ -105,7 +105,7 @@ def finalize_processors(classes, config_classes):
             config_classes.get(config_class_name, None) if config_class_name else None
         )
         if config_class:
-            processor_type, processor_name, dataset_name = config_class[1:]
+            processor_type, processor_name, experiment_name = config_class[1:]
             if processor_name:
                 name2proc[processor_name] = key
                 name2config[processor_name] = config_class_name
@@ -119,26 +119,26 @@ def finalize_processors(classes, config_classes):
     dataset2config = defaultdict(dict)
     proc2config = defaultdict(list)
     for key, value in config_classes.items():
-        module_prefix, processor_type, processor_name, dataset_name = value
+        module_prefix, processor_type, processor_name, experiment_name = value
         if processor_name:
             proc2config[processor_name].append(
-                (module_prefix, key, processor_type, dataset_name)
+                (module_prefix, key, processor_type, experiment_name)
             )
     for key, values in proc2config.items():
         _dataset2config = {value[3]: value for value in values if value[3]}
         generic_config = [value for value in values if not value[3]][0]
-        for dataset_name in ALL_DATASET_NAMES:
-            if dataset_name in _dataset2config:
-                _, config_class, _, _ = _dataset2config[dataset_name]
-                dataset2config[dataset_name][key] = config_class
+        for experiment_name in ALL_EXPERIMENTS:
+            if experiment_name in _dataset2config:
+                _, config_class, _, _ = _dataset2config[experiment_name]
+                dataset2config[experiment_name][key] = config_class
             else:
-                omic_type = DATASET_NAME_TO_OMIC_TYPE.get(dataset_name, None)
+                omic_type = EXPERIMENT_TYPE_TO_OMIC_TYPE.get(experiment_name, None)
                 if omic_type in _dataset2config:
                     _, config_class, _, _ = _dataset2config[omic_type]
-                    dataset2config[dataset_name][key] = config_class
+                    dataset2config[experiment_name][key] = config_class
                 else:
                     _, config_class, _, _ = generic_config
-                    dataset2config[dataset_name][key] = config_class
+                    dataset2config[experiment_name][key] = config_class
 
     return name2proc, name2config, name2category, name2type, dataset2config
 
@@ -165,7 +165,7 @@ def get_all_processor_configs(
                         finder = ClassFinder(
                             known_classes,
                             module_prefix,
-                            ["processor_type", "processor_name", "dataset_name"],
+                            ["processor_type", "processor_name", "experiment_name"],
                         )
                         finder.visit(tree)
                         # Collect found processors
@@ -298,27 +298,27 @@ def create_config_mapping_constants(
         mapping_val = f"{regex.sub('_', key).upper()}_PLOTTER_MAPPING"
         mapping_str += f"{mapping_val} = _LazyConfigMapping({mapping_name})\n"
 
-    ds2mapper = "DATASET_TO_MAPPER = {"
+    ds2mapper = "EXPERIMENT_CONFIG_MAPPING = {"
     for key, value in dataset2config.items():
-        mapping_val = f"{regex.sub('_', key).upper()}_MAPPING"
+        mapping_val = f"{regex.sub('_', key).upper()}_CONFIG_MAPPING"
         ds2mapper += f'"{key}": {mapping_val},'
     ds2mapper += "}"
 
-    ds2mapper_names = "DATASET_TO_MAPPER_NAMES = {"
+    ds2mapper_names = "EXPERIMENT_CONFIG_MAPPING_NAMES = {"
     for key, value in dataset2config.items():
-        mapping_name = f"{regex.sub('_', key).upper()}_MAPPING_NAMES"
+        mapping_name = f"{regex.sub('_', key).upper()}_CONFIG_MAPPING_NAMES"
         ds2mapper_names += f'"{key}": {mapping_name},'
     ds2mapper_names += "}"
 
-    dsplt2mapper = "DATASET_PLT_TO_MAPPER = {"
+    dsplt2mapper = "EXPERIMENT_PLOTTER_CONFIG_MAPPING = {"
     for key, value in dataset2pltconfig.items():
-        mapping_val = f"{regex.sub('_', key).upper()}_PLOTTER_MAPPING"
+        mapping_val = f"{regex.sub('_', key).upper()}_PLOTTER_CONFIG_MAPPING"
         dsplt2mapper += f'"{key}": {mapping_val},'
     dsplt2mapper += "}"
 
-    dsplt2mapper_names = "DATASET_PLT_TO_MAPPER_NAMES = {"
+    dsplt2mapper_names = "EXPERIMENT_PLOTTER_CONFIG_MAPPING_NAMES = {"
     for key, value in dataset2pltconfig.items():
-        mapping_name = f"{regex.sub('_', key).upper()}_PLOTTER_MAPPING_NAMES"
+        mapping_name = f"{regex.sub('_', key).upper()}_PLOTTER_CONFIG_MAPPING_NAMES"
         dsplt2mapper_names += f'"{key}": {mapping_name},'
     dsplt2mapper_names += "}"
 
@@ -349,21 +349,25 @@ def replace_mapping(head_str, mapping_str, file_path):
     _head_insert_point = 0
     # Find where to end head_str
     for node in ast.walk(tree):
-        if not head_start_point and (
-            isinstance(node, ast.ImportFrom) or isinstance(node, ast.Import)
-        ):
-            _head_insert_point = node.lineno + 1
-
+        line = getattr(node, "lineno", None)
         if (
             not head_start_point
-            and not isinstance(node, ast.ImportFrom)
-            and not isinstance(node, ast.Import)
+            and line is not None
+            and not (
+                isinstance(node, ast.ImportFrom)
+                or isinstance(node, ast.Import)
+                or (
+                    isinstance(node, ast.If)
+                    and isinstance(node.test, ast.Name)
+                    and node.test.id == "TYPE_CHECKING"
+                )
+            )
         ):
-            head_start_point = _head_insert_point
+            head_start_point = line - 1
 
         if (
             isinstance(node, ast.FunctionDef)
-            and node.name == "config_class_to_model_type"
+            and node.name == "config_class_to_processor_name"
         ):
             head_end_point = node.lineno - 1
 
@@ -373,7 +377,7 @@ def replace_mapping(head_str, mapping_str, file_path):
         if isinstance(node, ast.Assign):
             if (
                 hasattr(node.targets[0], "id")
-                and node.targets[0].id == "DATASET_PREPROCESSOR_MAPPING_NAMES"
+                and node.targets[0].id == "EXPERIMENT_PREPROCESSOR_MAPPING_NAMES"
             ):
                 mapping_end_point = node.lineno - 1
 

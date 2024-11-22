@@ -31,7 +31,7 @@ class ScalerPlotterConfig(PlotterConfig):
 
 
 class ScalerPlotter(BasePlotter):
-    config_class = ScalerPlotterConfig
+    _config_class = ScalerPlotterConfig
     config: ScalerPlotterConfig
 
     def plot_dataset(self, x1, x2, y1, y2):

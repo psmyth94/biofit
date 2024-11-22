@@ -60,7 +60,7 @@ class DistanceStatConfigForMetagenomics(DistanceStatConfig):
         init=False,
         repr=False,
     )
-    dataset_name: str = field(default="metagenomics", init=False, repr=False)
+    experiment_name: str = field(default="metagenomics", init=False, repr=False)
     metric: str = "braycurtis"
 
 
@@ -79,7 +79,7 @@ class DistanceStatConfigForOTU(DistanceStatConfig):
     _transform_input_feature_types: List[Type] = field(
         default_factory=lambda: [get_feature("Abundance")], init=False, repr=False
     )
-    dataset_name: str = field(default="otu", init=False, repr=False)
+    experiment_name: str = field(default="otu", init=False, repr=False)
     metric: str = "braycurtis"
 
 
@@ -98,7 +98,7 @@ class DistanceStatConfigForASV(DistanceStatConfig):
     _transform_input_feature_types: List[Type] = field(
         default_factory=lambda: [get_feature("Abundance")], init=False, repr=False
     )
-    dataset_name: str = field(default="asv", init=False, repr=False)
+    experiment_name: str = field(default="asv", init=False, repr=False)
     metric: str = "braycurtis"
 
 
@@ -116,7 +116,7 @@ class DistanceStatConfigForReadCount(DistanceStatConfig):
     _transform_input_feature_types: List[Type] = field(
         default_factory=lambda: [get_feature("ReadCount")], init=False, repr=False
     )
-    dataset_name: str = field(default="read_count", init=False, repr=False)
+    experiment_name: str = field(default="read_count", init=False, repr=False)
     metric: str = "braycurtis"
 
 
@@ -134,7 +134,7 @@ class DistanceStatConfigForSNP(DistanceStatConfig):
     _transform_input_feature_types: List[Type] = field(
         default_factory=lambda: [get_feature("GenomicVariant")], init=False, repr=False
     )
-    dataset_name: str = field(default="snp", init=False, repr=False)
+    experiment_name: str = field(default="snp", init=False, repr=False)
 
     metric: str = "jaccard"
 

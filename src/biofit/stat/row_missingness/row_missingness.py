@@ -103,7 +103,7 @@ class RowMissingnessStatConfigForOTU(RowMissingnessStatConfig):
     transform_process_name: str = field(
         default="Calculating sample richness", init=False, repr=False
     )
-    dataset_name: str = field(default="otu", init=False, repr=False)
+    experiment_name: str = field(default="otu", init=False, repr=False)
 
     # config attributes
     depth = 100
@@ -126,7 +126,7 @@ class RowMissingnessStatConfigForSNP(RowMissingnessStatConfig):
     transform_process_name: str = field(
         default="Calculating sample richness", init=False, repr=False
     )
-    dataset_name: str = field(default="snp", init=False, repr=False)
+    experiment_name: str = field(default="snp", init=False, repr=False)
 
     # config attributes
     depth = 100

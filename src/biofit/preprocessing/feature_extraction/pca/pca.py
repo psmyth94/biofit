@@ -41,7 +41,7 @@ class PCAFeatureExtractorConfig(FeatureExtractorConfig):
 
 class PCAFeatureExtractor(FeatureExtractor):
     output_dtype = "float64"
-    config_class = PCAFeatureExtractorConfig
+    _config_class = PCAFeatureExtractorConfig
     config: PCAFeatureExtractorConfig
 
     def __init__(

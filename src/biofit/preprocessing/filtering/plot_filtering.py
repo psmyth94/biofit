@@ -16,5 +16,5 @@ class SampleFilterPlotterConfig(PlotterConfig):
 
 
 class SampleFilterPlotter(BasePlotter):
-    config_class = SampleFilterPlotterConfig
+    _config_class = SampleFilterPlotterConfig
     config: SampleFilterPlotterConfig

@@ -277,14 +277,14 @@ class PCoAFeatureExtractorConfigForOTU(PCoAFeatureExtractorConfig):
     _transform_input_feature_types: List[Type] = field(
         default_factory=lambda: [get_feature("Abundance")], init=False, repr=False
     )
-    dataset_name: str = field(default="otu", init=False, repr=False)
+    experiment_name: str = field(default="otu", init=False, repr=False)
     correction: str = "cailliez"
 
 
 class PCoAFeatureExtractor(FeatureExtractor):
     output_dtype = "float64"
 
-    config_class = PCoAFeatureExtractorConfig
+    _config_class = PCoAFeatureExtractorConfig
     config: PCoAFeatureExtractorConfig
 
     def __init__(

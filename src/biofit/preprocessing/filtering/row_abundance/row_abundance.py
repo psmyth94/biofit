@@ -41,7 +41,7 @@ class AbundanceSampleFilterConfigForOTU(AbundanceSampleFilterConfig):
     _transform_input_feature_types: List[Type] = field(
         default_factory=lambda: [get_feature("Abundance")], init=False, repr=False
     )
-    dataset_name: str = field(default="otu", init=False, repr=False)
+    experiment_name: str = field(default="otu", init=False, repr=False)
     lower_threshold: Union[int, str] = "auto"
     upper_threshold: Union[int, str] = "auto"
 
@@ -50,7 +50,7 @@ class AbundanceSampleFilterConfigForOTU(AbundanceSampleFilterConfig):
 
 
 class AbundanceSampleFilter(SampleFilter):
-    config_class = AbundanceSampleFilterConfig
+    _config_class = AbundanceSampleFilterConfig
     config: AbundanceSampleFilterConfig
 
     IQRs = None

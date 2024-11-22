@@ -84,7 +84,7 @@ class TMMScaler(Scaler):
     output_dtype = "float64"
 
     # config class
-    config_class = TMMScalerConfig
+    _config_class = TMMScalerConfig
     config: TMMScalerConfig
 
     def __init__(

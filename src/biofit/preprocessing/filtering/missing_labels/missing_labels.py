@@ -53,7 +53,7 @@ class MissingLabelsSampleFilter(SampleFilter):
     """
 
     # main config class
-    config_class = MissingLabelsSampleFilterConfig
+    _config_class = MissingLabelsSampleFilterConfig
     config: MissingLabelsSampleFilterConfig
 
     def __init__(

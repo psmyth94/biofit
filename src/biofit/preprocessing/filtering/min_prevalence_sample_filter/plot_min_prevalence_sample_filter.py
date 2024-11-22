@@ -51,7 +51,7 @@ class MinPrevalenceRowPlotterConfig(SampleFilterPlotterConfig):
 
 @dataclass
 class MinPrevalenceRowPlotterConfigForMetagenomics(MinPrevalenceRowPlotterConfig):
-    dataset_name: str = field(default="metagenomics", init=False, repr=False)
+    experiment_name: str = field(default="metagenomics", init=False, repr=False)
     _transform_input_feature_types: List[Type] = field(
         default_factory=lambda: [
             [get_feature("Abundance"), get_feature("ReadCount")],
@@ -72,7 +72,7 @@ class MinPrevalenceRowPlotterConfigForMetagenomics(MinPrevalenceRowPlotterConfig
 
 @dataclass
 class MinPrevalenceRowPlotterConfigForOTU(MinPrevalenceRowPlotterConfigForMetagenomics):
-    dataset_name: str = field(default="otu", init=False, repr=False)
+    experiment_name: str = field(default="otu", init=False, repr=False)
     _transform_input_feature_types: List[Type] = field(
         default_factory=lambda: [get_feature("Abundance"), get_feature("Abundance")],
         init=False,
@@ -84,7 +84,7 @@ class MinPrevalenceRowPlotterConfigForOTU(MinPrevalenceRowPlotterConfigForMetage
 
 @dataclass
 class MinPrevalenceRowPlotterConfigForASV(MinPrevalenceRowPlotterConfigForMetagenomics):
-    dataset_name: str = field(default="asv", init=False, repr=False)
+    experiment_name: str = field(default="asv", init=False, repr=False)
     _transform_input_feature_types: List[Type] = field(
         default_factory=lambda: [get_feature("Abundance"), get_feature("Abundance")],
         init=False,
@@ -95,7 +95,7 @@ class MinPrevalenceRowPlotterConfigForASV(MinPrevalenceRowPlotterConfigForMetage
 
 @dataclass
 class MinPrevalenceRowPlotterConfigForGenomics(MinPrevalenceRowPlotterConfig):
-    dataset_name: str = field(default="genomics", init=False, repr=False)
+    experiment_name: str = field(default="genomics", init=False, repr=False)
     _transform_input_feature_types: List[Type] = field(
         default_factory=lambda: [
             (get_feature("ReadCount"), get_feature("GenomicVariant")),
@@ -108,7 +108,7 @@ class MinPrevalenceRowPlotterConfigForGenomics(MinPrevalenceRowPlotterConfig):
 
 @dataclass
 class MinPrevalenceRowPlotterConfigForSNP(MinPrevalenceRowPlotterConfig):
-    dataset_name: str = field(default="snp", init=False, repr=False)
+    experiment_name: str = field(default="snp", init=False, repr=False)
     _transform_input_feature_types: List[Type] = field(
         default_factory=lambda: [
             get_feature("GenomicVariant"),
@@ -121,7 +121,7 @@ class MinPrevalenceRowPlotterConfigForSNP(MinPrevalenceRowPlotterConfig):
 
 @dataclass
 class MinPrevalenceRowPlotterConfigForMaldi(MinPrevalenceRowPlotterConfig):
-    dataset_name: str = field(default="maldi", init=False, repr=False)
+    experiment_name: str = field(default="maldi", init=False, repr=False)
     _transform_input_feature_types: List[Type] = field(
         default_factory=lambda: [
             get_feature("PeakIntensity"),
@@ -141,7 +141,7 @@ class MinPrevalenceRowPlotterConfigForMaldi(MinPrevalenceRowPlotterConfig):
 
 @dataclass
 class MinPrevalenceRowPlotterConfigForReadCount(MinPrevalenceRowPlotterConfig):
-    dataset_name: str = field(default="read_count", init=False, repr=False)
+    experiment_name: str = field(default="read_count", init=False, repr=False)
     _transform_input_feature_types: List[Type] = field(
         default_factory=lambda: [get_feature("ReadCount"), get_feature("ReadCount")],
         init=False,
@@ -151,7 +151,7 @@ class MinPrevalenceRowPlotterConfigForReadCount(MinPrevalenceRowPlotterConfig):
 
 @dataclass
 class MinPrevalenceRowPlotterConfigForProteomics(MinPrevalenceRowPlotterConfig):
-    dataset_name: str = field(default="proteomics", init=False, repr=False)
+    experiment_name: str = field(default="proteomics", init=False, repr=False)
     _transform_input_feature_types: List[Type] = field(
         default_factory=lambda: [
             get_feature("PeakIntensity"),
@@ -163,7 +163,7 @@ class MinPrevalenceRowPlotterConfigForProteomics(MinPrevalenceRowPlotterConfig):
 
 
 class MinPrevalenceRowPlotter(SampleFilterPlotter):
-    config_class = MinPrevalenceRowPlotterConfig
+    _config_class = MinPrevalenceRowPlotterConfig
     config: MinPrevalenceRowPlotterConfig
 
     def __init__(

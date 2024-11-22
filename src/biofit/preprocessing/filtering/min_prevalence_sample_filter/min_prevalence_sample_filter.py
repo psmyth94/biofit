@@ -44,7 +44,7 @@ class MinPrevalenceRowSampleFilterConfig(SampleFilterConfig):
 @dataclass
 class MinPrevalenceRowSampleFilterConfigForOTU(MinPrevalenceRowSampleFilterConfig):
     # dataset description
-    dataset_name: str = field(default="otu", init=False, repr=False)
+    experiment_name: str = field(default="otu", init=False, repr=False)
 
     # override default values
     _fit_input_feature_types: List[Type] = field(
@@ -70,7 +70,7 @@ class MinPrevalenceRowSampleFilterConfigForOTU(MinPrevalenceRowSampleFilterConfi
 @dataclass
 class MinPrevalenceRowSampleFilterConfigForSNP(MinPrevalenceRowSampleFilterConfig):
     # dataset description
-    dataset_name: str = field(default="snp", init=False, repr=False)
+    experiment_name: str = field(default="snp", init=False, repr=False)
 
     # override default values
     _fit_input_feature_types: List[Type] = field(
@@ -86,7 +86,7 @@ class MinPrevalenceRowSampleFilterConfigForSNP(MinPrevalenceRowSampleFilterConfi
 @dataclass
 class MinPrevalenceRowSampleFilterConfigForMaldi(MinPrevalenceRowSampleFilterConfig):
     # dataset description
-    dataset_name: str = field(default="maldi", init=False, repr=False)
+    experiment_name: str = field(default="maldi", init=False, repr=False)
 
     # override default values
     _fit_input_feature_types: List[Type] = field(
@@ -101,7 +101,7 @@ class MinPrevalenceRowSampleFilterConfigForMaldi(MinPrevalenceRowSampleFilterCon
 
 class MinPrevalenceSampleFilter(SampleFilter):
     # main config class
-    config_class = MinPrevalenceRowSampleFilterConfig
+    _config_class = MinPrevalenceRowSampleFilterConfig
     config: MinPrevalenceRowSampleFilterConfig
 
     IQRs = None
