@@ -990,7 +990,7 @@ class ProcessorConfig(BaseConfig):
     features_out_prefix: str = field(default=None, init=False, repr=False)
     processor_type: str = field(default="", init=False, repr=False)
     processor_name: str = field(default="", init=False, repr=False)
-    dataset_name: str = field(default="", init=False, repr=False)
+    experiment_name: str = field(default="", init=False, repr=False)
 
     output_template_name: str = field(default=None, init=False, repr=False)
 
@@ -1664,7 +1664,7 @@ class BaseProcessor(TransformationMixin):
     output_dtype = None
 
     # config attributes
-    config_class = ProcessorConfig
+    _config_class = ProcessorConfig
     config: ProcessorConfig = None
 
     # internal attributes for transformation
@@ -1688,13 +1688,13 @@ class BaseProcessor(TransformationMixin):
 
         if config is None:
             if hasattr(self, "config_class"):
-                self.config = self.config_class.from_dict(
+                self.config = self._config_class.from_dict(
                     kwargs, ignore_none=ignore_none, add_new_attr=add_new_attr
                 )
         elif isinstance(config, ProcessorConfig):
             self.config = config
         elif isinstance(config, dict):
-            self.config = self.config_class.from_dict(
+            self.config = self._config_class.from_dict(
                 config, ignore_none=ignore_none, add_new_attr=add_new_attr
             )
         else:
@@ -1757,7 +1757,7 @@ class BaseProcessor(TransformationMixin):
         cls, path_or_config: Union[str, os.PathLike, dict, "BaseConfig"], **kwargs
     ) -> T_PROC:
         """Instantiates the processor from a configuration file or object."""
-        config = cls.config_class.from_config(path_or_config, add_new_attr=True)
+        config = cls._config_class.from_config(path_or_config, add_new_attr=True)
         return cls(config=config, **kwargs)
 
     @classmethod
@@ -2926,7 +2926,7 @@ class BaseProcessor(TransformationMixin):
         if cache_file_name and os.path.exists(cache_file_name):
             if isinstance(cache_file_name, Path):
                 cache_file_name = cache_file_name.resolve().as_posix()
-            self.config = self.config_class.from_config_file(cache_file_name)
+            self.config = self._config_class.from_config_file(cache_file_name)
             return self
         else:
             raise NonExistentCacheError

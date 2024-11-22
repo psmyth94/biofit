@@ -85,7 +85,7 @@ class PlotterConfig(BaseConfig):
 
     processor_type: str = field(default="", init=False, repr=False)
     processor_name: str = field(default="", init=False, repr=False)
-    dataset_name: str = field(default="", init=False, repr=False)
+    experiment_name: str = field(default="", init=False, repr=False)
 
     # automatically generated attributes
 

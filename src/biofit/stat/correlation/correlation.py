@@ -73,7 +73,7 @@ class CorrelationStat(Stat):
     Correlation calculation based on the correlation with the target variable.
     """
 
-    config_class = CorrelationStatConfig
+    _config_class = CorrelationStatConfig
     config: CorrelationStatConfig
     output_dtype = "float64"
     func = None

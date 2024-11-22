@@ -84,7 +84,7 @@ class LabelBinarizerConfig(EncoderConfig):
 
 
 class LabelBinarizer(Encoder):
-    config_class = LabelBinarizerConfig
+    _config_class = LabelBinarizerConfig
     config: LabelBinarizerConfig
 
     def __init__(

@@ -66,7 +66,7 @@ class RelativeAbundancePlotterConfigForMetagenomics(RelativeAbundancePlotterConf
         init=False,
         repr=False,
     )
-    dataset_name: str = field(default="metagenomics", init=False, repr=False)
+    experiment_name: str = field(default="metagenomics", init=False, repr=False)
     log_num: Optional[str] = "log2_1p"
 
 
@@ -82,7 +82,7 @@ class RelativeAbundancePlotterConfigForOTU(RelativeAbundancePlotterConfig):
         init=False,
         repr=False,
     )
-    dataset_name: str = field(default="otu", init=False, repr=False)
+    experiment_name: str = field(default="otu", init=False, repr=False)
     ylab: Optional[str] = "OTU Abundance"
     log_num: Optional[str] = "log10_1p"
 
@@ -99,7 +99,7 @@ class RelativeAbundancePlotterConfigForASV(RelativeAbundancePlotterConfig):
         init=False,
         repr=False,
     )
-    dataset_name: str = field(default="asv", init=False, repr=False)
+    experiment_name: str = field(default="asv", init=False, repr=False)
 
 
 @dataclass
@@ -124,7 +124,7 @@ class RelativeAbundancePlotterConfigForSNP(RelativeAbundancePlotterConfig):
         init=False,
         repr=False,
     )
-    dataset_name: str = field(default="snp", init=False, repr=False)
+    experiment_name: str = field(default="snp", init=False, repr=False)
 
 
 @dataclass
@@ -149,12 +149,12 @@ class RelativeAbundancePlotterConfigForMaldi(RelativeAbundancePlotterConfig):
         init=False,
         repr=False,
     )
-    dataset_name: str = field(default="maldi", init=False, repr=False)
+    experiment_name: str = field(default="maldi", init=False, repr=False)
     ylab: Optional[str] = "Peak Intensity"
 
 
 class RelativeAbundancePlotter(ScalerPlotter):
-    config_class = RelativeAbundancePlotterConfig
+    _config_class = RelativeAbundancePlotterConfig
     config: RelativeAbundancePlotterConfig
 
     def __init__(

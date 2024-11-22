@@ -13,5 +13,5 @@ class TransformerConfig(ProcessorConfig):
 class Transformer(BaseProcessor):
     """Base class for Transformer processors."""
 
-    config_class = TransformerConfig
+    _config_class = TransformerConfig
     config: TransformerConfig

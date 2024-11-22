@@ -18,7 +18,7 @@ class CLRScalerConfig(ScalerConfig):
     Configuration for CumulativeSumScaler.
     """
 
-    processor_name: str = field(default="css", init=False, repr=False)
+    processor_name: str = field(default="clr", init=False, repr=False)
     _fit_process_desc: str = field(
         default="Calculating cumulative sum scaling percentile", init=False, repr=False
     )
@@ -46,7 +46,7 @@ class CLRScaler(Scaler):
     """
 
     output_dtype = "float64"
-    config_class = CLRScalerConfig
+    _config_class = CLRScalerConfig
     config: CLRScalerConfig
 
     def __init__(
