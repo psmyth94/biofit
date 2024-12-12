@@ -30,7 +30,7 @@ def test_auto_preprocessor(float_data, sample_metadata, format):
     format = format.replace("_cached", "")
     X, y = float_data
     otu_dataset = pd.concat([sample_metadata, X, y], axis=1)
-    proc = AutoPreprocessor.for_dataset(
+    proc = AutoPreprocessor.from_dataset(
         "snp", load_from_cache_file=load_from_cache_file
     )
     cache_dir = biofit.config.BIOFIT_CACHE_HOME
@@ -42,7 +42,7 @@ def test_auto_preprocessor(float_data, sample_metadata, format):
         if format == "dataset":
             if not is_biosets_available():
                 pytest.skip("test requires biosets")
-            from biosets.features import GenomicVariant, BinClassLabel
+            from biosets.features import BinClassLabel, GenomicVariant
 
             otu_dataset = create_bioset(
                 X=X,

@@ -13,7 +13,7 @@ from ..auto.configuration_auto import (
 )
 
 if TYPE_CHECKING:
-    from biofit.processing import BaseProcessor
+    from biofit.processing import BaseProcessor, BaseConfig
 
 logger = logging.get_logger(__name__)
 
@@ -55,8 +55,8 @@ class _BaseAutoProcessorClass:
         )
 
     @classmethod
-    def for_processor(self, processor_name, **kwargs):
-        config = AutoConfig.for_processor(processor_name, **kwargs)
+    def from_processor(self, processor_name, **kwargs):
+        config = AutoConfig.from_processor(processor_name, **kwargs)
         return self.from_config(config, **kwargs)
 
     @classmethod
@@ -73,7 +73,12 @@ class _BaseAutoProcessorClass:
         )
 
     @classmethod
-    def register(cls, config_class, processor_class: "BaseProcessor", exist_ok=False):
+    def register(
+        cls,
+        config_class: "BaseConfig",
+        processor_class: "BaseProcessor",
+        exist_ok=False,
+    ):
         """
         Register a new model for this class.
 
@@ -138,6 +143,7 @@ class _BaseAutoProcessorClass:
                 config_class, processor_class, exist_ok=exist_ok
             )
 
+            cls.register(config_class, processor_class, exist_ok=True)
             if (
                 processor_class in cls._experiment_mapping[experiment_name]
                 and not exist_ok
@@ -149,6 +155,15 @@ class _BaseAutoProcessorClass:
             cls._experiment_mapping[experiment_name].register(
                 processor_class, config_class, exist_ok=exist_ok
             )
+            cls.register(config_class, processor_class, exist_ok=True)
+
+    # unregister experiment
+    @classmethod
+    def unregister_experiment(cls, experiment_name):
+        if experiment_name in cls._experiment_mapping:
+            del cls._experiment_mapping[experiment_name]
+        else:
+            raise ValueError(f"Experiment {experiment_name} is not registered.")
 
 
 class _BaseAutoModelClass:
@@ -162,8 +177,8 @@ class _BaseAutoModelClass:
         )
 
     @classmethod
-    def for_model(cls, model_name, *model_args, **kwargs):
-        config = AutoConfig.for_processor(model_name, **kwargs)
+    def from_model(cls, model_or_name, *model_args, **kwargs):
+        config = AutoConfig.from_processor(model_or_name, **kwargs)
         return cls.from_config(config, *model_args, **kwargs)
 
     @classmethod

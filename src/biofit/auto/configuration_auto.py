@@ -11,10 +11,11 @@ from biocore.utils.import_util import (
 from biocore.utils.inspect import get_kwargs
 from biocore.utils.py_util import is_bioset
 
-from biofit.processing import ProcessorConfig
 
 if TYPE_CHECKING:
     from biosets import Bioset
+    from biofit.processing import BaseProcessor, ProcessorConfig
+    from biofit.visualization.plotting import PlotterConfig
 
 
 PROCESSOR_MAPPING_NAMES = OrderedDict(
@@ -1127,38 +1128,44 @@ class AutoConfig:
         )
 
     @classmethod
-    def for_processor(
+    def from_processor(
         cls,
-        model_type: str,
+        processor_or_name: Union[str, "BaseProcessor"],
         *args,
         dataset_or_experiment: Union[str, "Bioset"] = None,
         **kwargs,
-    ):
+    ) -> "ProcessorConfig":
+        from biofit.processing import BaseProcessor
+
+        if isinstance(processor_or_name, BaseProcessor):
+            processor_or_name = processor_or_name.config.processor_name
+
         if dataset_or_experiment is not None:
             experiment_name = get_experiment_name(dataset_or_experiment)
             if experiment_name in EXPERIMENT_CONFIG_MAPPING:
                 mapper = EXPERIMENT_CONFIG_MAPPING[experiment_name]
-                if model_type in mapper:
-                    _config_class = mapper[model_type]
+                if processor_or_name in mapper:
+                    _config_class = mapper[processor_or_name]
                     return _config_class(*args, **kwargs)
                 raise ValueError(
-                    f"Unrecognized model identifier: {model_type}. Should contain one of {', '.join(mapper.keys())}"
+                    f"Unrecognized model identifier: {processor_or_name}. Should contain one of {', '.join(mapper.keys())}"
                 )
-        if model_type in CONFIG_MAPPING:
-            _config_class = CONFIG_MAPPING[model_type]
+        if processor_or_name in CONFIG_MAPPING:
+            _config_class = CONFIG_MAPPING[processor_or_name]
             cls_kwargs = get_kwargs(kwargs, _config_class.__init__)
             return _config_class(*args, **cls_kwargs)
         elif (
             is_transformers_available()
-            and PROCESSOR_CATEGORY_MAPPING_NAMES.get(model_type, "models") == "models"
+            and PROCESSOR_CATEGORY_MAPPING_NAMES.get(processor_or_name, "models")
+            == "models"
         ):
             from transformers.models.auto.configuration_auto import (
                 AutoConfig as HfAutoConfig,
             )
 
-            return HfAutoConfig.for_model(model_type, *args, **kwargs)
+            return HfAutoConfig.for_model(processor_or_name, *args, **kwargs)
         raise ValueError(
-            f"Unrecognized model identifier: {model_type}. Should contain one of {', '.join(CONFIG_MAPPING.keys())}"
+            f"Unrecognized model identifier: {processor_or_name}. Should contain one of {', '.join(CONFIG_MAPPING.keys())}"
         )
 
     @classmethod
@@ -1227,6 +1234,18 @@ class AutoConfig:
                 processor_name, config, exist_ok=exist_ok
             )
 
+    @classmethod
+    def unregister_experiment(cls, experiment_name):
+        """
+        Unregister experiment.
+        """
+        if experiment_name in EXPERIMENT_CONFIG_MAPPING:
+            del EXPERIMENT_CONFIG_MAPPING[experiment_name]
+        else:
+            raise ValueError(
+                f"Experiment {experiment_name} does not have any configuration registered."
+            )
+
 
 class AutoPlotterConfig:
     """
@@ -1277,38 +1296,43 @@ class AutoPlotterConfig:
         )
 
     @classmethod
-    def for_processor(
+    def from_processor(
         cls,
-        processor_type: str,
+        processor_or_name: Union[str, "BaseProcessor"],
         *args,
         dataset_or_experiment: Union[str, "Bioset"] = None,
         **kwargs,
-    ):
+    ) -> "PlotterConfig":
+        from biofit.processing import BaseProcessor
+
+        if isinstance(processor_or_name, BaseProcessor):
+            processor_or_name = processor_or_name.config.processor_name
+
         if dataset_or_experiment is not None:
             experiment_name = get_experiment_name(dataset_or_experiment)
             if experiment_name in EXPERIMENT_PLOTTER_CONFIG_MAPPING:
                 mapper = EXPERIMENT_PLOTTER_CONFIG_MAPPING[experiment_name]
-                if processor_type in mapper:
-                    _config_class = mapper[processor_type]
+                if processor_or_name in mapper:
+                    _config_class = mapper[processor_or_name]
                     return _config_class(*args, **kwargs)
                 raise ValueError(
-                    f"Unrecognized model identifier: {processor_type}. Should contain one of {', '.join(mapper.keys())}"
+                    f"Unrecognized model identifier: {processor_or_name}. Should contain one of {', '.join(mapper.keys())}"
                 )
-        if processor_type in PLOTTER_CONFIG_MAPPING:
-            _config_class = PLOTTER_CONFIG_MAPPING[processor_type]
+        if processor_or_name in PLOTTER_CONFIG_MAPPING:
+            _config_class = PLOTTER_CONFIG_MAPPING[processor_or_name]
             return _config_class(*args, **kwargs)
         elif (
             is_transformers_available()
-            and PROCESSOR_CATEGORY_MAPPING_NAMES.get(processor_type, "models")
+            and PROCESSOR_CATEGORY_MAPPING_NAMES.get(processor_or_name, "models")
             == "models"
         ):
             from transformers.models.auto.configuration_auto import (
                 AutoConfig as HfAutoConfig,
             )
 
-            return HfAutoConfig.for_model(processor_type, *args, **kwargs)
+            return HfAutoConfig.for_model(processor_or_name, *args, **kwargs)
         raise ValueError(
-            f"Unrecognized model identifier: {processor_type}. Should contain one of {', '.join(PLOTTER_CONFIG_MAPPING.keys())}"
+            f"Unrecognized model identifier: {processor_or_name}. Should contain one of {', '.join(PLOTTER_CONFIG_MAPPING.keys())}"
         )
 
     @staticmethod
@@ -1334,6 +1358,19 @@ class AutoPlotterConfig:
         for processor_name, config in zip(processor_names, configs):
             EXPERIMENT_PLOTTER_CONFIG_MAPPING[experiment_name].register(
                 processor_name, config, exist_ok=exist_ok
+            )
+            PLOTTER_CONFIG_MAPPING.register(processor_name, config, exist_ok=True)
+
+    @classmethod
+    def unregister_experiment(cls, experiment_name):
+        """
+        Unregister experiment.
+        """
+        if experiment_name in EXPERIMENT_PLOTTER_CONFIG_MAPPING:
+            del EXPERIMENT_PLOTTER_CONFIG_MAPPING[experiment_name]
+        else:
+            raise ValueError(
+                f"Experiment {experiment_name} does not have any configuration registered."
             )
 
 
@@ -1388,3 +1425,16 @@ class AutoPreprocessorConfig(AutoConfig):
                     "`AutoConfig.register_experiment`."
                 )
         EXPERIMENT_PREPROCESSOR_MAPPING_NAMES[experiment_name] = preprocessor_names
+
+    # unregister pipeline
+    @classmethod
+    def unregister_pipeline(cls, experiment_name):
+        """
+        Unregister pipeline for an experiment.
+        """
+        if experiment_name in EXPERIMENT_PREPROCESSOR_MAPPING_NAMES:
+            del EXPERIMENT_PREPROCESSOR_MAPPING_NAMES[experiment_name]
+        else:
+            raise ValueError(
+                f"Experiment {experiment_name} does not have any pipeline registered."
+            )

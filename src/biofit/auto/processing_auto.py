@@ -3,6 +3,7 @@ from typing import List
 
 from biocore.utils.import_util import is_biosets_available
 from biocore.utils.inspect import get_kwargs
+from biocore.utils.py_util import is_bioset
 from sklearn.pipeline import Pipeline
 
 from biofit.auto.auto_factory import (
@@ -83,7 +84,7 @@ class AutoPreprocessor(_BaseAutoProcessorClass):
     _experiment_mapping = EXPERIMENT_MAPPING
 
     @classmethod
-    def for_dataset(cls, dataset_name, **kwargs):
+    def from_dataset(cls, dataset_or_name, **kwargs):
         """
         Create a preprocessor pipeline for a given dataset.
 
@@ -94,14 +95,19 @@ class AutoPreprocessor(_BaseAutoProcessorClass):
             ProcessorPipeline
                 The preprocessor pipeline for the dataset.
         """
+
+        if is_bioset(dataset_or_name):
+            dataset_or_name = dataset_or_name._info.builder_name
+        else:
+            raise ValueError("Dataset should be a `biosets.Bioset` instance.")
         if is_biosets_available():
             from biosets.packaged_modules import EXPERIMENT_TYPE_ALIAS
         else:
             EXPERIMENT_TYPE_ALIAS = {}
 
-        dataset_name = EXPERIMENT_TYPE_ALIAS.get(dataset_name, dataset_name)
-        _processor_mapping = cls._experiment_mapping[dataset_name]
-        configs = AutoPreprocessorConfig.for_experiment(dataset_name, **kwargs)
+        dataset_or_name = EXPERIMENT_TYPE_ALIAS.get(dataset_or_name, dataset_or_name)
+        _processor_mapping = cls._experiment_mapping[dataset_or_name]
+        configs = AutoPreprocessorConfig.for_experiment(dataset_or_name, **kwargs)
         procs = [
             _get_class(config, _processor_mapping)._from_config(config)
             for config in configs

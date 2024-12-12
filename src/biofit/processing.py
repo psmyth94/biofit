@@ -1687,7 +1687,7 @@ class BaseProcessor(TransformationMixin):
         ignore_none = kwargs.pop("ignore_none", False)
 
         if config is None:
-            if hasattr(self, "config_class"):
+            if hasattr(self, "_config_class"):
                 self.config = self._config_class.from_dict(
                     kwargs, ignore_none=ignore_none, add_new_attr=add_new_attr
                 )

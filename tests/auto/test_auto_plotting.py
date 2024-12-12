@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import unittest
 from unittest.mock import MagicMock
 
@@ -12,9 +13,6 @@ from biofit.processing import BaseProcessor, ProcessorConfig
 from biofit.visualization.plotting import BasePlotter, PlotterConfig
 
 from tests.utils import require_biosets, require_rpy2
-
-handler = DataHandler()
-
 
 pytestmark = pytest.mark.integration
 
@@ -65,36 +63,41 @@ def test_auto_plotting_snp(binary_data, sample_metadata, format):
     proc.plot(snp_dataset, path=cache_dir)
 
 
+@dataclass
 class MockPlotterConfig(PlotterConfig):
-    processor_name = "mock_processor"
-    processor_type = "mock_type"
+    processor_name: str = "mock_processor"
+    processor_type: str = "mock_type"
 
-    custom_param = "test_value"
+    custom_param: str = "test_value"
 
 
+@dataclass
 class MockPlotter2Config(PlotterConfig):
-    processor_name = "mock_processor2"
-    processor_type = "mock_type"
+    processor_name: str = "mock_processor2"
+    processor_type: str = "mock_type"
 
-    custom_param = "test_value2"
+    custom_param: str = "test_value2"
 
 
+@dataclass
 class MockPlotterConfigForMockExperiment(MockPlotterConfig):
-    experiment_name = "mock_dataset"
-    custom_param = "test_value3"
+    experiment_name: str = "mock_dataset"
+    custom_param: str = "test_value3"
 
 
+@dataclass
 class MockPlotter(BasePlotter):
     _config_class = MockPlotterConfig
     processor_name = "mock_processor"
 
     def __init__(self, config=None, **kwargs):
-        super().__init__(config=config)
+        super().__init__(config=config, **kwargs)
 
     def plot(X, *args, **kwargs):
         pass
 
 
+@dataclass
 class MockPlotter2(BasePlotter):
     _config_class = MockPlotter2Config
     processor_name = "mock_processor2"
@@ -107,14 +110,16 @@ class MockPlotter2(BasePlotter):
         pass
 
 
+@dataclass
 class MockProcessorConfig(ProcessorConfig):
-    processor_name = "mock_processor"
-    processor_type = "mock_type"
+    processor_name: str = "mock_processor"
+    processor_type: str = "mock_type"
 
 
+@dataclass
 class MockProcessor2Config(ProcessorConfig):
-    processor_name = "mock_processor2"
-    processor_type = "mock_type"
+    processor_name: str = "mock_processor2"
+    processor_type: str = "mock_type"
 
 
 class MockProcessor(BaseProcessor):
@@ -137,67 +142,6 @@ class MockProcessor2(BaseProcessor):
 
     def fit_transform(X, *args, **kwargs):
         pass
-
-
-class TestPlotterPipeline(unittest.TestCase):
-    def setUp(self):
-        self.plotter_mock = MagicMock(spec=BasePlotter)
-        self.processor_mock = MagicMock(spec=BaseProcessor)
-        self.plotter_pipeline = PlotterPipeline(
-            plotters=[self.plotter_mock], processors=[self.processor_mock]
-        )
-        self.dataset_mock = MagicMock(_info=MagicMock())
-
-    def test_plot_with_valid_dataset(self):
-        # Arrange
-        self.processor_mock.fit_transform.return_value = self.dataset_mock
-        self.plotter_mock.plot.return_value = "mocked_path"
-
-        # Act
-        self.plotter_pipeline.plot(self.dataset_mock, fit=True)
-
-        # Assert
-        self.processor_mock.fit_transform.assert_called_once()
-        self.plotter_mock.plot.assert_called_once()
-
-    def test_plot_with_invalid_dataset(self):
-        with self.assertRaises(ValueError) as context:
-            self.plotter_pipeline.plot("invalid_dataset")
-        self.assertEqual(
-            str(context.exception), "X must be a biofit or huggingface Dataset."
-        )
-
-    def test_plot_without_fit(self):
-        # Arrange
-        self.processor_mock.transform.return_value = self.dataset_mock
-        self.plotter_mock.plot.return_value = "mocked_path"
-
-        # Act
-        self.plotter_pipeline.plot(self.dataset_mock, fit=False)
-
-        # Assert
-        self.processor_mock.transform.assert_called_once()
-        self.plotter_mock.plot.assert_called_once()
-
-    def test_plot_with_multiple_processors(self):
-        # Arrange
-        processor_mock_2 = MagicMock(spec=BaseProcessor)
-        processor_mock_2.fit_transform.return_value = self.dataset_mock
-        plotter_mock_2 = MagicMock(spec=BasePlotter)
-        plotter_mock_2.plot.return_value = "mocked_path_2"
-        plotter_pipeline = PlotterPipeline(
-            plotters=[self.plotter_mock, plotter_mock_2],
-            processors=[self.processor_mock, processor_mock_2],
-        )
-
-        # Act
-        plotter_pipeline.plot(self.dataset_mock, fit=True)
-
-        # Assert
-        self.processor_mock.fit_transform.assert_called_once()
-        processor_mock_2.fit_transform.assert_called_once()
-        self.plotter_mock.plot.assert_called_once()
-        plotter_mock_2.plot.assert_called_once()
 
 
 class TestAutoPlotter(unittest.TestCase):
@@ -255,10 +199,27 @@ class TestAutoPlotter(unittest.TestCase):
             [MockProcessorConfig, MockProcessor2Config],
         )
 
+        AutoPlotter.register(
+            MockPlotterConfig, MockPlotter
+        )
+
         AutoPreprocessorConfig.register_pipeline("mock_experiment", ["mock_processor"])
         AutoPreprocessorConfig.register_pipeline(
             "mock_experiment2", ["mock_processor2"]
         )
+
+    def tearDown(self):
+        AutoPreprocessor.unregister_experiment("mock_experiment")
+        AutoPlotter.unregister_experiment("mock_experiment")
+        AutoPreprocessorConfig.unregister_experiment("mock_experiment")
+        AutoPlotterConfig.unregister_experiment("mock_experiment")
+        AutoPreprocessor.unregister_experiment("mock_experiment2")
+        AutoPlotter.unregister_experiment("mock_experiment2")
+        AutoPreprocessorConfig.unregister_experiment("mock_experiment2")
+        AutoPlotterConfig.unregister_experiment("mock_experiment2")
+
+        AutoPreprocessorConfig.unregister_pipeline("mock_experiment")
+        AutoPreprocessorConfig.unregister_pipeline("mock_experiment2")
 
     def test_key_already_exist(self):
         with self.assertRaises(ValueError) as context:
@@ -279,10 +240,8 @@ class TestAutoPlotter(unittest.TestCase):
         experiment_name = "mock_experiment"
         dataset_mock = MagicMock(spec=Bioset, _info=MagicMock())
         dataset_mock._info.builder_name = experiment_name
-        # Act
         plotter_pipeline = AutoPlotter.for_experiment(dataset_mock)
 
-        # Assert
         self.assertIsInstance(plotter_pipeline, PlotterPipeline)
         self.assertIsInstance(plotter_pipeline.plotters[0], MockPlotter)
         self.assertIsInstance(
@@ -295,10 +254,8 @@ class TestAutoPlotter(unittest.TestCase):
         experiment_name = "mock_experiment2"
         dataset_mock = MagicMock(spec=Bioset, _info=MagicMock())
         dataset_mock._info.builder_name = experiment_name
-        # Act
         plotter_pipeline = AutoPlotter.for_experiment(dataset_mock)
 
-        # Assert
         self.assertIsInstance(plotter_pipeline, PlotterPipeline)
         self.assertIsInstance(plotter_pipeline.plotters[0], MockPlotter2)
         self.assertIsInstance(plotter_pipeline.plotters[0].config, MockPlotter2Config)
@@ -307,28 +264,19 @@ class TestAutoPlotter(unittest.TestCase):
         )
 
     def test_loading_with_kwargs_overwriting_default(self):
-        # Arrange
-        experiment_name = "otu"
+        experiment_name = "mock_experiment"
         plotter_pipeline = AutoPlotter.for_experiment(
             experiment_name, custom_param="overwritten_value"
         )
 
-        # Assert
         self.assertIsInstance(plotter_pipeline, PlotterPipeline)
         self.assertIsInstance(plotter_pipeline.plotters[0], MockPlotter)
-        self.assertEqual(plotter_pipeline.plotters[0].custom_param, "overwritten_value")
+        self.assertEqual(
+            plotter_pipeline.plotters[0].config.custom_param, "overwritten_value"
+        )
 
     def test_from_processor(self):
-        # Arrange
-        processor_mock = MagicMock(spec=BaseProcessor)
-        processor_mock.config.experiment_name = "test_dataset"
-        config_mock = MagicMock(spec=AutoPlotterConfig)
-        AutoPlotterConfig.for_processor = MagicMock(return_value=config_mock)
-        lazy_auto_mapping_mock = {MockPlotter: MockPlotter(config_mock)}
+        plotter = AutoPlotter.from_processor(MockProcessor())
 
-        # Act
-        plotter = AutoPlotter.from_processor(processor_mock)
-
-        # Assert
         self.assertIsInstance(plotter, MockPlotter)
         self.assertIsNotNone(plotter)

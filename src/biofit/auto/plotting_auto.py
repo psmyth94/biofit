@@ -91,7 +91,7 @@ class AutoPlotter(_BaseAutoProcessorClass):
                 _plotter_mapping[type(config)]._from_config(config, **config_kwargs)
             )
 
-        processors = AutoPreprocessor.for_dataset(experiment_name)
+        processors = AutoPreprocessor.from_dataset(experiment_name)
 
         return PlotterPipeline(procs, processors)
 
@@ -127,13 +127,13 @@ class AutoPlotter(_BaseAutoProcessorClass):
                     experiment_name, experiment_name
                 )
                 _plotter_mapping = cls._experiment_mapping[experiment_name]
-                config = AutoPlotterConfig.for_processor(
+                config = AutoPlotterConfig.from_processor(
                     proc.config.processor_name,
                     dataset_or_experiment=experiment_name,
                 )
             else:
                 _plotter_mapping = PLOTTER_MAPPING
-                config = AutoPlotterConfig.for_processor(proc.config.processor_name)
+                config = AutoPlotterConfig.from_processor(proc.config.processor_name)
             config_kwargs = get_kwargs(kwargs, config.__class__.__init__)
             return _plotter_mapping[type(config)]._from_config(config, **config_kwargs)
 

@@ -1025,7 +1025,7 @@ def plot_dimension_reduction(
         if method_kwargs is None or not isinstance(method_kwargs, dict):
             method_kwargs = {}
 
-        method = AutoPreprocessor.for_processor(method, **method_kwargs)
+        method = AutoPreprocessor.from_processor(method, **method_kwargs)
     if not method.is_fitted:
         data = method.fit_transform(X, load_from_cache_file=False)
     else:

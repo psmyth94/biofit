@@ -96,26 +96,12 @@ class PlotterConfig(BaseConfig):
 
 
 class BasePlotter(TransformationMixin):
-    """_summary_
+    """All plotters should inherit from this class.
 
     Attributes:
-        r_code (_type_): _description_
-        r_source (_type_): _description_
-        feature_type (_type_): _description_
-        dtype (str): specifies the type of the plotter. Can be 'plotter' or 'plotter_for'
-
-    Raises:
-        NotImplementedError: _description_
-        ValueError: _description_
-        ValueError: _description_
-        ValueError: _description_
-        ValueError: _description_
-        ValueError: _description_
-        ValueError: _description_
-        ValueError: _description_
-
-    Returns:
-        _type_: _description_
+        config (PlotterConfig, *optional*): The configuration for the plotter.
+        r_caller (RCaller, *optional*): The RCaller object.
+        plotter (function, *optional*): The R function to call.
     """
 
     r_caller: RCaller = None
@@ -130,7 +116,7 @@ class BasePlotter(TransformationMixin):
         if config is None:
             if hasattr(self, "_config_class"):
                 self.config = self._config_class.from_dict(
-                    kwargs, ignore_none=ignore_none, add_new_attr=add_new_attr
+                    ignore_none=ignore_none, add_new_attr=add_new_attr
                 )
         elif isinstance(config, PlotterConfig):
             self.config = config
@@ -140,9 +126,13 @@ class BasePlotter(TransformationMixin):
             )
         else:
             raise ValueError(f"Unsupported config type {type(config)}")
-        if config is None:
+        if config is None or len(kwargs) > 0:
             self = self.set_params(**kwargs)
-        if self.config.r_source and self.config.main_method and self.plotter is None:
+        if (
+            self.config.r_source is not None
+            and self.config.main_method is not None
+            and self.plotter is None
+        ):
             self.r_caller = RCaller.from_script(self.config.r_source)
             self.r_caller.verify_r_dependencies(
                 install_missing=kwargs.get("install_missing")
