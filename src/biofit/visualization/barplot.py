@@ -148,7 +148,7 @@ class BarPlotter(BasePlotter):
         legend_position: str = Unset('"top"'),
         font_size: float = Unset("3.25"),
         path: str = None,
-        device: str = "pdf",
+        device: str = "png",
         fingerprint: str = None,
         unused_columns: SelectedColumnTypes = None,
         raise_if_missing: bool = True,

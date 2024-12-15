@@ -1,3 +1,5 @@
+import math
+import re
 import sys
 from os import PathLike
 from typing import List, Optional, Union
@@ -10,6 +12,174 @@ from sklearn.pipeline import Pipeline
 
 from biofit.processing import SelectedColumnTypes
 from biofit.utils.types import Unset
+
+
+def sci_format(x):
+    if (abs(x) < 1 and abs(x) > 0 and math.floor(math.log10(abs(x))) <= -2) or abs(
+        x
+    ) >= 10000:
+        return f"{x:.2e}"
+    else:
+        return f"{x:.2f}"
+
+
+def prepare_data_for_hist(x1, x2=None):
+    data1_sample = x1.sum(axis=1)
+    data1_feature = x1.sum(axis=0)
+
+    list_sums = [data1_sample, data1_feature]
+
+    if x2 is not None:
+        data2_sample = x2.sum(axis=1)
+        data2_feature = x2.sum(axis=0)
+        list_sums.extend([data2_sample, data2_feature])
+
+    return list_sums
+
+
+def non_zero_sums(x1, x2=None):
+    x1_non_zero_row = (x1 != 0).sum(axis=1)
+    x1_non_zero_col = (x1 != 0).sum(axis=0)
+    sums = [x1_non_zero_row, x1_non_zero_col]
+
+    if x2 is not None:
+        x2_non_zero_row = (x2 != 0).sum(axis=1)
+        x2_non_zero_col = (x2 != 0).sum(axis=0)
+        sums.extend([x2_non_zero_row, x2_non_zero_col])
+
+    return sums
+
+
+def prepare_axis_label(label, log_type):
+    if re.search("1p", log_type):
+        if re.search("_1p", log_type):
+            label_log = re.sub("_1p", "", log_type)
+            label = f"{label} ({label_log}(x+1))"
+        else:
+            label = f"{label} (ln(x+1))"
+    elif log_type == "log":
+        label = f"{label} (ln)"
+    else:
+        label = f"{label} ({log_type})"
+    return label
+
+
+def log_transformation(x, log_type):
+    def apply_func(func, val):
+        if hasattr(val, "__iter__") and not isinstance(val, str):
+            return [func(v) for v in val]
+        else:
+            return func(val)
+
+    if "1p" in log_type:
+        if "_1p" in log_type:
+            label_log = log_type.replace("_1p", "")
+            if label_log == "log10":
+                return apply_func(lambda v: math.log10(1 + v), x)
+            elif label_log == "log2":
+                return apply_func(lambda v: math.log2(1 + v), x)
+        else:
+            return apply_func(lambda v: math.log(1 + v), x)
+    elif log_type == "log":
+        return apply_func(math.log, x)
+    elif log_type == "log2":
+        return apply_func(math.log2, x)
+    elif log_type == "log10":
+        return apply_func(math.log10, x)
+    return x
+
+
+def log2_1p(x):
+    if hasattr(x, "__iter__") and not isinstance(x, str):
+        return [math.log2(1 + xi) for xi in x]
+    else:
+        return math.log2(1 + x)
+
+
+def log2_1p_trans():
+    def transform(val):
+        return math.log2(1 + val)
+
+    def inverse(val):
+        return (2**val) - 1
+
+    return {
+        "name": "log2_1p",
+        "transform": transform,
+        "inverse": inverse,
+        "domain": (0, float("inf")),
+    }
+
+
+def log10_1p(x):
+    if hasattr(x, "__iter__") and not isinstance(x, str):
+        return [math.log10(1 + xi) for xi in x]
+    else:
+        return math.log10(1 + x)
+
+
+def log10_1p_trans():
+    def transform(val):
+        return math.log10(1 + val)
+
+    def inverse(val):
+        return (10**val) - 1
+
+    return {
+        "name": "log10_1p",
+        "transform": transform,
+        "inverse": inverse,
+        "domain": (0, float("inf")),
+    }
+
+
+def color_name_to_rgb(color_name):
+    requires_backends("color_name_to_rgb", "matplotlib")
+    from matplotlib.colors import CSS4_COLORS, TABLEAU_COLORS, XKCD_COLORS
+
+    if color_name in CSS4_COLORS:
+        return CSS4_COLORS[color_name]
+    elif f"tab:{color_name}" in TABLEAU_COLORS:
+        return TABLEAU_COLORS[f"tab:{color_name}"]
+    elif f"xkcd:{color_name}" in XKCD_COLORS:
+        return XKCD_COLORS[f"xkcd:{color_name}"]
+    else:
+        return color_name
+
+
+def color_select(levels, col_set="Set1"):
+    requires_backends("color_select", "matplotlib")
+    cm = globals()["matplotlib"].cm
+    mcolors = globals()["matplotlib"].colors
+
+    valid_sets = [
+        "Set1",
+        "Set2",
+        "Set3",
+        "Pastel2",
+        "Pastel1",
+        "Paired",
+        "Dark2",
+        "Accent",
+    ]
+    if col_set not in valid_sets:
+        raise ValueError(f"col_set must be one of {valid_sets}")
+
+    if col_set in ["Set1", "Pastel1"]:
+        num_col = 9
+    elif col_set in ["Set3", "Paired"]:
+        num_col = 12
+    else:
+        num_col = 8
+
+    cmap = cm.get_cmap("tab10")  # 'tab10' is an arbitrary colormap; choose as needed.
+
+    if levels > num_col:
+        colors = [mcolors.to_hex(cmap(i / (levels - 1))) for i in range(levels)]
+    else:
+        colors = [mcolors.to_hex(cmap(i / (num_col - 1))) for i in range(levels)]
+
+    return colors
 
 
 def is_in_notebook():
@@ -96,7 +266,7 @@ def generate_violin(
     label_name: SelectedColumnTypes = None,
     xlab: str = Unset('"Labels"'),
     ylab: str = Unset('"Value"'),
-    device: str = "pdf",
+    device: str = "png",
     fingerprint: str = None,
     unused_columns: SelectedColumnTypes = None,
     raise_if_missing: bool = True,
@@ -146,7 +316,7 @@ def generate_scatterplot(
     xlog: str = Unset("None"),
     ylog: str = Unset("None"),
     output_dir: str = None,
-    device: str = "pdf",
+    device: str = "png",
     fingerprint: str = None,
     unused_columns: SelectedColumnTypes = None,
     raise_if_missing: bool = True,
@@ -190,7 +360,7 @@ def generate_histogram(
     xlog: Optional[str] = Unset("None"),
     ylog: Optional[str] = Unset("None"),
     output_dir: str = None,
-    device: str = "pdf",
+    device: str = "png",
     fingerprint: str = None,
     unused_columns: SelectedColumnTypes = None,
     raise_if_missing: bool = True,
@@ -250,7 +420,7 @@ def generate_barplot(
     legend_position: str = Unset('"top"'),
     font_size: float = Unset("3.25"),
     output_dir: str = None,
-    device: str = "pdf",
+    device: str = "png",
     fingerprint: str = None,
     unused_columns: SelectedColumnTypes = None,
     raise_if_missing: bool = True,
@@ -315,7 +485,7 @@ def generate_comparison_histogram(
     cols: Optional[List[str]] = Unset("None"),
     xlog: Optional[bool] = Unset("None"),
     ylog: Optional[bool] = Unset("None"),
-    device: str = "pdf",
+    device: str = "png",
     fingerprint: str = None,
     unused_columns: SelectedColumnTypes = None,
     raise_if_missing: bool = True,
@@ -491,7 +661,7 @@ def plot_feature_distribution(
     xlog: Optional[str] = Unset("None"),
     ylog: Optional[str] = Unset("None"),
     output_dir: str = None,
-    device: str = "pdf",
+    device: str = "png",
     fingerprint: str = None,
     unused_columns: SelectedColumnTypes = None,
     raise_if_missing: bool = True,
@@ -595,7 +765,7 @@ def compare_feature_distributions(
     xlog: Optional[bool] = Unset("None"),
     ylog: Optional[bool] = Unset("None"),
     output_dir: str = None,
-    device: str = "pdf",
+    device: str = "png",
     fingerprint: str = None,
     unused_columns: SelectedColumnTypes = None,
     raise_if_missing: bool = True,
@@ -723,7 +893,7 @@ def plot_sample_distribution(
     xlog: Optional[str] = Unset("None"),
     ylog: Optional[str] = Unset("None"),
     output_dir: str = None,
-    device: str = "pdf",
+    device: str = "png",
     fingerprint: str = None,
     unused_columns: SelectedColumnTypes = None,
     raise_if_missing: bool = True,
@@ -831,7 +1001,7 @@ def compare_sample_distributions(
     cols: Optional[List[str]] = Unset("None"),
     xlog: Optional[bool] = Unset("None"),
     ylog: Optional[bool] = Unset("None"),
-    device: str = "pdf",
+    device: str = "png",
     fingerprint: str = None,
     unused_columns: SelectedColumnTypes = None,
     raise_if_missing: bool = True,
@@ -975,7 +1145,7 @@ def plot_dimension_reduction(
     n_components: int = Unset("3"),
     dimension_reducer=None,
     output_dir: str = None,
-    device: str = "pdf",
+    device: str = "png",
     fingerprint: str = None,
     unused_columns: SelectedColumnTypes = None,
     raise_if_missing: bool = True,
@@ -1126,7 +1296,7 @@ def plot_feature_importance(
     row_title: str = Unset('"Features"'),
     plot_title: str = Unset('"Values"'),
     output_dir: str = None,
-    device: str = "pdf",
+    device: str = "png",
     fingerprint: str = None,
     unused_columns: SelectedColumnTypes = None,
     raise_if_missing: bool = True,
@@ -1188,7 +1358,7 @@ def plot_sample_metadata(
     sample_metadata_columns: Optional[SelectedColumnTypes] = None,
     outcome_column: Optional[SelectedColumnTypes] = None,
     output_dir: str = None,
-    device: str = "pdf",
+    device: str = "png",
     fingerprint: str = None,
     unused_columns: SelectedColumnTypes = None,
     raise_if_missing: bool = True,

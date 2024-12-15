@@ -107,7 +107,7 @@ class SampleMetadataPlotter(BasePlotter):
         sample_metadata_columns: Optional[SelectedColumnTypes] = None,
         outcome_column: Optional[SelectedColumnTypes] = None,
         path: str = None,
-        device: str = "pdf",
+        device: str = "png",
         fingerprint: str = None,
         unused_columns: SelectedColumnTypes = None,
         raise_if_missing: bool = True,

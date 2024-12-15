@@ -110,7 +110,7 @@ class ViolinPlotter(BasePlotter):
         xlab: str = Unset('"Labels"'),
         ylab: str = Unset('"Value"'),
         path: str = None,
-        device: str = "pdf",
+        device: str = "png",
         fingerprint: str = None,
         unused_columns: SelectedColumnTypes = None,
         raise_if_missing: bool = True,

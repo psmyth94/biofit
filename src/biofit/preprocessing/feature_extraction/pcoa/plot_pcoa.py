@@ -53,7 +53,7 @@ class PCoAFeatureExtractorPlotter(FeatureExtractorPlotter):
         title: str = Unset("PCA Plot"),
         n_components: int = Unset(3),
         path=None,
-        device: str = "pdf",
+        device: str = "png",
         fingerprint: str = None,
         unused_columns: SelectedColumnTypes = None,
         raise_if_missing: bool = True,

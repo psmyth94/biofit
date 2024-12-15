@@ -58,12 +58,13 @@ def _processor_info_from_fingerprint(fingerprint: str):
 @dataclass
 class PlotterConfig(BaseConfig):
     path: str = field(default=None, init=True, repr=True)
-    device: str = field(default="pdf", init=True, repr=False)
+    device: str = field(default="png", init=True, repr=False)
     fingerprint: str = field(default=None, init=True, repr=False)
     unused_columns: SelectedColumnTypes = field(default=None, init=True, repr=False)
     raise_if_missing: bool = field(default=True, init=True, repr=False)
     cache_dir: str = field(default=None, init=True, repr=False)
     version: str = field(default="0.0.0", init=True, repr=False)
+    savefig_kwargs: dict = field(default_factory=dict, init=True, repr=False)
 
     _input_columns: SelectedColumnTypes = field(default=None, init=False, repr=False)
     _compare: bool = field(default=False, init=False, repr=False)
@@ -116,7 +117,7 @@ class BasePlotter(TransformationMixin):
         if config is None:
             if hasattr(self, "_config_class"):
                 self.config = self._config_class.from_dict(
-                    ignore_none=ignore_none, add_new_attr=add_new_attr
+                    kwargs, ignore_none=ignore_none, add_new_attr=add_new_attr
                 )
         elif isinstance(config, PlotterConfig):
             self.config = config
@@ -191,7 +192,7 @@ class BasePlotter(TransformationMixin):
 
         fingerprint = kwargs.pop("fingerprint", None) or self.config.fingerprint
 
-        image_paths = None
+        fig = None
         if plot_func:
             (
                 self.feature_names_in_,
@@ -332,9 +333,22 @@ class BasePlotter(TransformationMixin):
                 )
                 file_name = f"{fingerprint}_{cls_name}.{self.config.device}"
 
+            if output_dir:
+                output_dir.mkdir(parents=True, exist_ok=True)
+                output_dir = output_dir.resolve().as_posix()
+
             fig = plot_func(input, *args, **kwargs)
             if "matplotlib" in sys.modules:
                 import matplotlib.pyplot as plt
+                from matplotlib.artist import Artist
+
+                if isinstance(fig, Artist):
+                    if output_dir:
+                        fig.figure.savefig(
+                            os.path.join(output_dir, file_name),
+                            format=self.config.device,
+                            **self.config.savefig_kwargs,
+                        )
 
             if output_dir:
 
@@ -362,8 +376,6 @@ class BasePlotter(TransformationMixin):
 
                     return image_paths
 
-                output_dir.mkdir(parents=True, exist_ok=True)
-                output_dir = output_dir.resolve().as_posix()
                 # move all files within temp_dir to output_dir
                 images = [fn for fn in Path(temp_dir).glob(f"*.{self.config.device}")]
                 image_paths = get_or_move_images(images, output_dir, move_images=True)
@@ -411,7 +423,7 @@ class BasePlotter(TransformationMixin):
                         plt.close(fig)
                 else:
                     logger.warning("No plots were generated")
-        return image_paths
+        return fig
 
     def _process_plot_input(self, input, *args, **kwargs):
         return input, args, kwargs

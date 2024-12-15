@@ -1,9 +1,10 @@
 from dataclasses import dataclass, field
 from typing import List, Optional, Type
 
+from biocore.utils.py_util import is_bioset
+
 from biofit.integration.biosets import get_feature
 from biofit.processing import SelectedColumnTypes
-from biocore.utils.py_util import is_bioset
 from biofit.utils.types import Unset
 
 from ..plot_scaling import ScalerPlotter, ScalerPlotterConfig
@@ -222,7 +223,7 @@ class RelativeAbundancePlotter(ScalerPlotter):
         log_num: Optional[int] = Unset("None"),
         show_outliers: bool = Unset("True"),
         path: str = None,
-        device: str = "pdf",
+        device: str = "png",
         fingerprint: str = None,
         unused_columns: SelectedColumnTypes = None,
         raise_if_missing: bool = True,

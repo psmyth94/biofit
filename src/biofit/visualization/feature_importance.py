@@ -313,7 +313,7 @@ class FeatureImportancePlotter(BasePlotter):
         row_title: str = Unset('"Features"'),
         plot_title: str = Unset('"Values"'),
         path: str = None,
-        device: str = "pdf",
+        device: str = "png",
         fingerprint: str = None,
         unused_columns: SelectedColumnTypes = None,
         raise_if_missing: bool = True,

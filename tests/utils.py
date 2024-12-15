@@ -34,6 +34,20 @@ def require_biosets(test_case):
     return test_case
 
 
+def require_matplotlib(test_case):
+    """
+    Decorator marking a test that requires matplotlib.
+
+    These tests are skipped when matplotlib isn't installed.
+
+    """
+    try:
+        import matplotlib  # noqa
+    except ImportError:
+        test_case = unittest.skip("test requires matplotlib")(test_case)
+    return test_case
+
+
 def require_datasets(test_case):
     """
     Decorator marking a test that requires datasets.

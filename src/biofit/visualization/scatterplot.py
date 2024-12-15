@@ -140,7 +140,7 @@ class ScatterPlotter(BasePlotter):
         xlog: str = Unset("None"),
         ylog: str = Unset("None"),
         path: str = None,
-        device: str = "pdf",
+        device: str = "png",
         fingerprint: str = None,
         unused_columns: SelectedColumnTypes = None,
         raise_if_missing: bool = True,

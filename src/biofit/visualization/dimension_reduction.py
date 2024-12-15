@@ -93,7 +93,7 @@ class DimensionReductionPlotter(BasePlotter):
         n_components: int = Unset("3"),
         dimension_reducer=None,
         path: str = None,
-        device: str = "pdf",
+        device: str = "png",
         fingerprint: str = None,
         unused_columns: SelectedColumnTypes = None,
         raise_if_missing: bool = True,

@@ -290,7 +290,7 @@ class AbundanceSampleFilterPlotter(SampleFilterPlotter):
         non_zero_feat_xlab: str = Unset("None"),
         non_zero_feat_main: str = Unset("None"),
         path: str = None,
-        device: str = "pdf",
+        device: str = "png",
         fingerprint: str = None,
         unused_columns: SelectedColumnTypes = None,
         raise_if_missing: bool = True,
