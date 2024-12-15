@@ -394,6 +394,55 @@ class PCoAFeatureExtractor(FeatureExtractor):
             fingerprint=fingerprint,
         )
 
+    def fit_transform(
+        self,
+        X,
+        input_columns: SelectedColumnTypes = None,
+        keep_unused_columns: bool = None,
+        raise_if_missing: bool = None,
+        cache_output: bool = None,
+        load_from_cache_file: bool = None,
+        batched: bool = None,
+        batch_size: int = None,
+        batch_format: str = None,
+        output_format: str = None,
+        map_kwargs: dict = None,
+        num_proc: int = None,
+        cache_dir: str = None,
+        cache_file_name: str = None,
+        fingerprint: str = None,
+    ):
+        return self.fit(
+            X,
+            input_columns=input_columns,
+            raise_if_missing=raise_if_missing,
+            cache_output=cache_output,
+            load_from_cache_file=load_from_cache_file,
+            batched=batched,
+            batch_size=batch_size,
+            batch_format=batch_format,
+            num_proc=num_proc,
+            map_kwargs=map_kwargs,
+            cache_dir=cache_dir,
+            cache_file_name=cache_file_name,
+            fingerprint=fingerprint,
+        ).transform(
+            X,
+            keep_unused_columns=keep_unused_columns,
+            raise_if_missing=raise_if_missing,
+            cache_output=cache_output,
+            cache_dir=cache_dir,
+            cache_file_name=cache_file_name,
+            load_from_cache_file=load_from_cache_file,
+            batched=batched,
+            batch_size=batch_size,
+            batch_format=batch_format,
+            output_format=output_format,
+            map_kwargs=map_kwargs,
+            num_proc=num_proc,
+            fingerprint=fingerprint,
+        )
+
     def _fit_numpy(self, X: "np.ndarray"):
         self.config.eigvals, self.config.vectors = pcoa(
             self.distance._transform_numpy(X),

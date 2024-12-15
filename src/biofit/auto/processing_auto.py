@@ -98,8 +98,7 @@ class AutoPreprocessor(_BaseAutoProcessorClass):
 
         if is_bioset(dataset_or_name):
             dataset_or_name = dataset_or_name._info.builder_name
-        else:
-            raise ValueError("Dataset should be a `biosets.Bioset` instance.")
+
         if is_biosets_available():
             from biosets.packaged_modules import EXPERIMENT_TYPE_ALIAS
         else:
