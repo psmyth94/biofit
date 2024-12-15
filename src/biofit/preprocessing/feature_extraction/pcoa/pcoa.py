@@ -315,7 +315,7 @@ class PCoAFeatureExtractor(FeatureExtractor):
             **kwargs,
         )
         distance_config = DistanceStatConfig.from_config(self.config)
-        self.distance = DistanceStat(distance_config)
+        self.distance = DistanceStat(config=distance_config)
         self.config._n_features_out = self.config.n_components
 
     @sync_backup_config
@@ -428,6 +428,7 @@ class PCoAFeatureExtractor(FeatureExtractor):
             fingerprint=fingerprint,
         ).transform(
             X,
+            input_columns=input_columns,
             keep_unused_columns=keep_unused_columns,
             raise_if_missing=raise_if_missing,
             cache_output=cache_output,

@@ -1728,7 +1728,7 @@ class BaseProcessor(TransformationMixin):
     def has_fit(self):
         """bool: Whether a fit function is found for the processor"""
         return self._get_method(_ORDERED_FORMATS, func_type="_fit") or self._get_method(
-            _ORDERED_FORMATS, func_type="_fit", prefix=self._batch_method_prefix
+            _ORDERED_FORMATS, func_type="_fit", prefix=self.config._batch_method_prefix
         )
 
     @property
@@ -1846,8 +1846,23 @@ class BaseProcessor(TransformationMixin):
         fingerprint: str = None,
     ):
         """Must be implemented by subclasses if the processor is trainable."""
-        # only use this fit method if no concrete fit method is found
-        raise NotImplementedError("Processor must implement `fit` method")
+        if self.has_fit:
+            # has a concrete fit method
+            raise NotImplementedError("Processor must implement base `fit` method")
+        return self._process_fit(
+            X,
+            raise_if_missing=raise_if_missing,
+            cache_output=cache_output,
+            load_from_cache_file=load_from_cache_file,
+            batched=batched,
+            batch_size=batch_size,
+            batch_format=batch_format,
+            num_proc=num_proc,
+            map_kwargs=map_kwargs,
+            cache_dir=cache_dir,
+            cache_file_name=cache_file_name,
+            fingerprint=fingerprint,
+        )
 
     def _process_fit(
         self,

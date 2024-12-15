@@ -619,7 +619,6 @@ def _run_eval(model_name, X, y, sample_metadata, format, task):
             preds, metrics = evaluate(
                 model,
                 data,
-                output_dir=os.path.dirname(otu_dataset.cache_files[0]["filename"]),
             )
         else:
             data = DataHandler.to_format(otu_dataset, new_format)
@@ -663,7 +662,6 @@ def _run_eval(model_name, X, y, sample_metadata, format, task):
             preds, metrics = evaluate(
                 model,
                 data,
-                output_dir=os.path.dirname(otu_dataset.cache_files[0]["filename"]),
             )
         else:
             data = DataHandler.to_format(otu_dataset, format)
