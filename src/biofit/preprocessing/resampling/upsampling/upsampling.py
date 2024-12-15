@@ -162,7 +162,7 @@ class UpSamplerConfigForMetagenomics(UpSamplerConfig):
         init=False,
         repr=False,
     )
-    dataset_name: str = field(default="metagenomics", init=False, repr=False)
+    experiment_name: str = field(default="metagenomics", init=False, repr=False)
 
 
 @dataclass
@@ -179,7 +179,7 @@ class UpSamplerConfigForOTU(UpSamplerConfig):
     _transform_input_feature_types: List[Type] = field(
         default_factory=lambda: [get_feature("Abundance")], init=False, repr=False
     )
-    dataset_name: str = field(default="otu", init=False, repr=False)
+    experiment_name: str = field(default="otu", init=False, repr=False)
 
 
 @dataclass
@@ -196,14 +196,14 @@ class UpSamplerConfigForSNP(UpSamplerConfig):
     _transform_input_feature_types: List[Type] = field(
         default_factory=lambda: [get_feature("GenomicVariant")], init=False, repr=False
     )
-    dataset_name: str = field(default="snp", init=False, repr=False)
+    experiment_name: str = field(default="snp", init=False, repr=False)
 
 
 class UpSampler(Resampler):
     output_dtype = "float32"
 
     # config class
-    config_class = UpSamplerConfig
+    _config_class = UpSamplerConfig
     config: UpSamplerConfig
 
     def __init__(

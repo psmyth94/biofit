@@ -100,7 +100,7 @@ class ColumnMissingnessStatConfigForOTU(ColumnMissingnessStatConfig):
     _transform_input_feature_types: List[Type] = field(
         default_factory=lambda: [get_feature("Abundance")], init=False, repr=False
     )
-    dataset_name: str = field(default="otu", init=False, repr=False)
+    experiment_name: str = field(default="otu", init=False, repr=False)
 
     depth: Optional[Union[float, int]] = 0
 
@@ -120,7 +120,7 @@ class ColumnMissingnessStatConfigForSNP(ColumnMissingnessStatConfig):
     _transform_input_feature_types: List[Type] = field(
         default_factory=lambda: [get_feature("Abundance")], init=False, repr=False
     )
-    dataset_name: str = field(default="snp", init=False, repr=False)
+    experiment_name: str = field(default="snp", init=False, repr=False)
 
     depth: Optional[Union[float, int]] = 0
 
@@ -144,7 +144,7 @@ class ColumnMissingnessStatConfigForMetagenomics(ColumnMissingnessStatConfig):
         init=False,
         repr=False,
     )
-    dataset_name: str = field(default="metagenomics", init=False, repr=False)
+    experiment_name: str = field(default="metagenomics", init=False, repr=False)
 
     depth: Optional[Union[float, int]] = 0
 

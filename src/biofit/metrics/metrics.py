@@ -115,7 +115,9 @@ def specificity(
     if average is not None:
         assert average != "binary" or len(specificity) == 1
         specificity = _nanaverage(specificity, weights=weights)
-    if isinstance(specificity, (list, tuple, np.ndarray)) and len(specificity) > 1:
+    if isinstance(specificity, (list, tuple)) and len(specificity) > 1:
+        specificity = specificity[-1]
+    elif isinstance(specificity, np.ndarray) and len(specificity.shape) and specificity.shape[0] > 1:
         specificity = specificity[-1]
     return specificity
 

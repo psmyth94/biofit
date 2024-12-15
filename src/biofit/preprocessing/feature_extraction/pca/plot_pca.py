@@ -20,7 +20,7 @@ class PCAFeatureExtractorPlotterConfig(FeatureExtractorPlotterConfig):
 
 
 class PCAFeatureExtractorPlotter(FeatureExtractorPlotter):
-    config_class = PCAFeatureExtractorPlotterConfig
+    _config_class = PCAFeatureExtractorPlotterConfig
     config: PCAFeatureExtractorPlotterConfig
 
     def __init__(

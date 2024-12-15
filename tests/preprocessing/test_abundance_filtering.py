@@ -15,16 +15,16 @@ pytestmark = pytest.mark.unit
 @pytest.mark.parametrize(
     "format",
     [
+        "dataset",
         "pandas",
         "polars",
         "numpy",
         "arrow",
-        "dataset",
+        "dataset_cached",
         "pandas_cached",
         "polars_cached",
         "numpy_cached",
         "arrow_cached",
-        "dataset_cached",
     ],
 )
 def test_abundance_filter_otu(count_data, sample_metadata, format):

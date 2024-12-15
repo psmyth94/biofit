@@ -42,7 +42,7 @@ class LabelEncoderConfig(EncoderConfig):
 
 
 class LabelEncoder(Encoder):
-    config_class = LabelEncoderConfig
+    _config_class = LabelEncoderConfig
     config: LabelEncoderConfig
     output_feature_type = get_feature("ClassLabel")
 

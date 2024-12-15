@@ -3,7 +3,8 @@ from .distance import (
     DistanceStat,
     DistanceStatConfig,
     DistanceStatConfigForASV,
-    DistanceStatConfigForOTU,
     DistanceStatConfigForMetagenomics,
+    DistanceStatConfigForOTU,
     DistanceStatConfigForReadCount,
+    DistanceStatConfigForSNP,
 )

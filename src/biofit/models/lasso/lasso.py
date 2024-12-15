@@ -80,12 +80,12 @@ class LassoConfig(ModelConfig):
 
 
 class LassoConfigForOTU(LassoConfig):
-    dataset_name: str = field(default="otu", init=False, repr=False)
+    experiment_name: str = field(default="otu", init=False, repr=False)
     log_transform: Union[str, bool] = field(default="log2_1p", init=False, repr=False)
 
 
 class LassoModel(Model):
-    config_class = LassoConfig
+    _config_class = LassoConfig
     config: LassoConfig
     lasso: Lasso
 

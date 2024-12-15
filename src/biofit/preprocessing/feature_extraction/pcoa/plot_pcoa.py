@@ -21,7 +21,7 @@ class PCoAFeatureExtractorPlotterConfig(FeatureExtractorPlotterConfig):
 
 
 class PCoAFeatureExtractorPlotter(FeatureExtractorPlotter):
-    config_class = PCoAFeatureExtractorPlotterConfig
+    _config_class = PCoAFeatureExtractorPlotterConfig
     config: PCoAFeatureExtractorPlotterConfig
 
     def __init__(

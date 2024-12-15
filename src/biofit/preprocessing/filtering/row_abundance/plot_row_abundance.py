@@ -59,7 +59,7 @@ class AbundanceSampleFilterPlotterConfig(SampleFilterPlotterConfig):
 class AbundanceSampleFilterPlotterConfigForMetagenomics(
     AbundanceSampleFilterPlotterConfig
 ):
-    dataset_name: str = field(default="metagenomics", init=False, repr=False)
+    experiment_name: str = field(default="metagenomics", init=False, repr=False)
     _fit_input_feature_types: List[Type] = field(
         default_factory=lambda: [get_feature("Abundance"), get_feature("Abundance")],
         init=False,
@@ -84,7 +84,7 @@ class AbundanceSampleFilterPlotterConfigForMetagenomics(
 class AbundanceSampleFilterPlotterConfigForOTU(
     AbundanceSampleFilterPlotterConfigForMetagenomics
 ):
-    dataset_name: str = field(default="otu", init=False, repr=False)
+    experiment_name: str = field(default="otu", init=False, repr=False)
     _fit_input_feature_types: List[Type] = field(
         default_factory=lambda: [get_feature("Abundance"), get_feature("Abundance")],
         init=False,
@@ -103,7 +103,7 @@ class AbundanceSampleFilterPlotterConfigForOTU(
 class AbundanceSampleFilterPlotterConfigForASV(
     AbundanceSampleFilterPlotterConfigForMetagenomics
 ):
-    dataset_name: str = field(default="asv", init=False, repr=False)
+    experiment_name: str = field(default="asv", init=False, repr=False)
     _fit_input_feature_types: List[Type] = field(
         default_factory=lambda: [get_feature("Abundance"), get_feature("Abundance")],
         init=False,
@@ -119,7 +119,7 @@ class AbundanceSampleFilterPlotterConfigForASV(
 
 @dataclass
 class AbundanceSampleFilterPlotterConfigForGenomics(AbundanceSampleFilterPlotterConfig):
-    dataset_name: str = field(default="genomics", init=False, repr=False)
+    experiment_name: str = field(default="genomics", init=False, repr=False)
     _input_feature_types: List[Type] = field(
         default_factory=lambda: [
             (get_feature("ReadCount"), get_feature("GenomicVariant")),
@@ -132,7 +132,7 @@ class AbundanceSampleFilterPlotterConfigForGenomics(AbundanceSampleFilterPlotter
 
 @dataclass
 class AbundanceSampleFilterPlotterConfigForSNP(AbundanceSampleFilterPlotterConfig):
-    dataset_name: str = field(default="snp", init=False, repr=False)
+    experiment_name: str = field(default="snp", init=False, repr=False)
     _fit_input_feature_types: List[Type] = field(
         default_factory=lambda: [
             get_feature("GenomicVariant"),
@@ -155,7 +155,7 @@ class AbundanceSampleFilterPlotterConfigForSNP(AbundanceSampleFilterPlotterConfi
 class AbundanceSampleFilterPlotterConfigForReadCount(
     AbundanceSampleFilterPlotterConfig
 ):
-    dataset_name: str = field(default="read_count", init=False, repr=False)
+    experiment_name: str = field(default="read_count", init=False, repr=False)
     _fit_input_feature_types: List[Type] = field(
         default_factory=lambda: [get_feature("ReadCount"), get_feature("ReadCount")],
         init=False,
@@ -172,7 +172,7 @@ class AbundanceSampleFilterPlotterConfigForReadCount(
 class AbundanceSampleFilterPlotterConfigForProteomics(
     AbundanceSampleFilterPlotterConfig
 ):
-    dataset_name: str = field(default="proteomics", init=False, repr=False)
+    experiment_name: str = field(default="proteomics", init=False, repr=False)
     _fit_input_feature_types: List[Type] = field(
         default_factory=lambda: [get_feature("Expression"), get_feature("Expression")],
         init=False,
@@ -186,7 +186,7 @@ class AbundanceSampleFilterPlotterConfigForProteomics(
 
 
 class AbundanceSampleFilterPlotter(SampleFilterPlotter):
-    config_class = AbundanceSampleFilterPlotterConfig
+    _config_class = AbundanceSampleFilterPlotterConfig
     config: AbundanceSampleFilterPlotterConfig
 
     def __init__(

@@ -67,7 +67,7 @@ class RandomForestConfig(ModelConfig):
 
 
 class RandomForestModel(Model):
-    config_class = RandomForestConfig
+    _config_class = RandomForestConfig
     config: RandomForestConfig
     random_forest: Union[RandomForestClassifier, RandomForestRegressor]
 

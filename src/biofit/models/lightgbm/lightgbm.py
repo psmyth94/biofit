@@ -91,7 +91,7 @@ class LightGBMConfig(ModelConfig):
 
 
 class LightGBMModel(Model):
-    config_class = LightGBMConfig
+    _config_class = LightGBMConfig
     config: LightGBMConfig
     lightgbm: Union["LGBMClassifier", "LGBMRegressor"]
 

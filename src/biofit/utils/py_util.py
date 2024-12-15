@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import multiprocessing
+import multiprocessing.pool
 import os
 import queue
 import random
@@ -131,7 +132,7 @@ def set_seed(seed: int):
 # Hugging Face authors. Licensed under the Apache 2.0 license. See the license file for
 # details at https://www.apache.org/licenses/LICENSE-2.0
 def _get_pool_pid(
-    pool: Union[multiprocessing.pool.Pool, multiprocess.pool.Pool],
+    pool: Union[multiprocessing.pool.Pool, multiprocess.pool.Pool]
 ) -> Set[int]:
     return {f.pid for f in pool._pool}
 

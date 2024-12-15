@@ -896,7 +896,7 @@ class ProcessorConfig(BaseConfig):
             The name of the processor (e.g. select_k_best, min_max_scaler,
             simple_imputer, etc.). Used for auto class instantiation. Must be the same
             as the module name where the processor is defined.
-        dataset_name (str, *optional*):
+        experiment_name (str, *optional*):
             The name of the dataset the processor is applied to. Used for auto class
             instantiation based on the type of the dataset. A `None` value implies that
             the processor is not dataset-specific.
@@ -990,7 +990,7 @@ class ProcessorConfig(BaseConfig):
     features_out_prefix: str = field(default=None, init=False, repr=False)
     processor_type: str = field(default="", init=False, repr=False)
     processor_name: str = field(default="", init=False, repr=False)
-    dataset_name: str = field(default="", init=False, repr=False)
+    experiment_name: str = field(default="", init=False, repr=False)
 
     output_template_name: str = field(default=None, init=False, repr=False)
 
@@ -1046,7 +1046,7 @@ class ProcessorConfig(BaseConfig):
         states["features_out_prefix"] = self.features_out_prefix
         states["processor_name"] = self.processor_name
         states["processor_type"] = self.processor_type
-        states["dataset_name"] = self.dataset_name
+        states["experiment_name"] = self.experiment_name
         return states
 
     @classmethod
@@ -1393,30 +1393,29 @@ class TransformationMixin:
             col_names = DataHandler.get_column_names(X, generate_cols=True)
             col_names_set = set(col_names)
             if input_columns:
-                if isinstance(input_columns, tuple) or isinstance(input_columns, type):
+                if (
+                    isinstance(input_columns, tuple)
+                    and isinstance(input_columns[0], type)
+                ) or isinstance(input_columns, type):
                     feature_type = input_columns
                     if isinstance(feature_type, type):
                         feature_type = (feature_type,)
 
-                    if is_datasets_available():
-                        from datasets.features.features import _FEATURE_TYPES
+                    try:
+                        input_columns = DataHandler.get_column_names_by_feature_type(
+                            X, feature_type=feature_type
+                        )
+                        if len(input_columns) == 0:
+                            input_columns = None
+                    except ValueError:
+                        if generate_cols:
+                            input_columns = DataHandler.get_column_names(
+                                X, generate_cols=True
+                            )
+                        else:
+                            input_columns = None
 
-                        if all(f in _FEATURE_TYPES.values() for f in feature_type):
-                            try:
-                                input_columns = (
-                                    DataHandler.get_column_names_by_feature_type(
-                                        X, feature_type=feature_type
-                                    )
-                                )
-                            except ValueError:
-                                if generate_cols:
-                                    input_columns = DataHandler.get_column_names(
-                                        X, generate_cols=True
-                                    )
-                                else:
-                                    input_columns = None
-
-                elif input_columns:
+                else:
                     if isinstance(input_columns, (str, int)):
                         input_columns = [input_columns]
                     if not isinstance(input_columns[0], int):
@@ -1429,7 +1428,7 @@ class TransformationMixin:
                             input_columns = [
                                 c for c in input_columns if c in col_names_set
                             ]
-            elif unused_columns:
+            if input_columns is None and unused_columns:
                 if isinstance(unused_columns, (str, int)):
                     unused_columns = [unused_columns]
                 if isinstance(unused_columns, tuple) or isinstance(
@@ -1458,7 +1457,8 @@ class TransformationMixin:
                 if unused_columns is not None:
                     unused_columns = set(unused_columns)
                     input_columns = [c for c in col_names if c not in unused_columns]
-            elif generate_cols:
+
+            if (input_columns is None or len(input_columns) == 0) and generate_cols:
                 input_columns = DataHandler.get_column_names(X, generate_cols=True)
 
             if input_columns:
@@ -1664,7 +1664,7 @@ class BaseProcessor(TransformationMixin):
     output_dtype = None
 
     # config attributes
-    config_class = ProcessorConfig
+    _config_class = ProcessorConfig
     config: ProcessorConfig = None
 
     # internal attributes for transformation
@@ -1687,14 +1687,14 @@ class BaseProcessor(TransformationMixin):
         ignore_none = kwargs.pop("ignore_none", False)
 
         if config is None:
-            if hasattr(self, "config_class"):
-                self.config = self.config_class.from_dict(
+            if hasattr(self, "_config_class"):
+                self.config = self._config_class.from_dict(
                     kwargs, ignore_none=ignore_none, add_new_attr=add_new_attr
                 )
         elif isinstance(config, ProcessorConfig):
             self.config = config
         elif isinstance(config, dict):
-            self.config = self.config_class.from_dict(
+            self.config = self._config_class.from_dict(
                 config, ignore_none=ignore_none, add_new_attr=add_new_attr
             )
         else:
@@ -1728,7 +1728,7 @@ class BaseProcessor(TransformationMixin):
     def has_fit(self):
         """bool: Whether a fit function is found for the processor"""
         return self._get_method(_ORDERED_FORMATS, func_type="_fit") or self._get_method(
-            _ORDERED_FORMATS, func_type="_fit", prefix=self._batch_method_prefix
+            _ORDERED_FORMATS, func_type="_fit", prefix=self.config._batch_method_prefix
         )
 
     @property
@@ -1742,8 +1742,8 @@ class BaseProcessor(TransformationMixin):
         processor_suffix = f"-{self.config.processor_name}"
         if self.config.processor_type:
             processor_suffix += f"-{self.config.processor_type}"
-        if self.config.dataset_name:
-            processor_suffix += f"-{self.config.dataset_name}"
+        if self.config.experiment_name:
+            processor_suffix += f"-{self.config.experiment_name}"
         return f"{base_fingerprint}{processor_suffix}"
 
     def _reset(self, config: ProcessorConfig):
@@ -1757,7 +1757,7 @@ class BaseProcessor(TransformationMixin):
         cls, path_or_config: Union[str, os.PathLike, dict, "BaseConfig"], **kwargs
     ) -> T_PROC:
         """Instantiates the processor from a configuration file or object."""
-        config = cls.config_class.from_config(path_or_config, add_new_attr=True)
+        config = cls._config_class.from_config(path_or_config, add_new_attr=True)
         return cls(config=config, **kwargs)
 
     @classmethod
@@ -1846,7 +1846,9 @@ class BaseProcessor(TransformationMixin):
         fingerprint: str = None,
     ):
         """Must be implemented by subclasses if the processor is trainable."""
-        # only use this fit method if no concrete fit method is found
+        if self.has_fit:
+            # has a concrete fit method
+            raise NotImplementedError("Processor must implement base `fit` method")
         return self._process_fit(
             X,
             raise_if_missing=raise_if_missing,
@@ -2886,9 +2888,13 @@ class BaseProcessor(TransformationMixin):
         *args,
         **kwargs,
     ):
-        output_format = kwargs.pop("output_format", None)
-        return self.fit(X, *args, **kwargs).transform(
-            X, output_format=output_format, **kwargs
+        raise NotImplementedError(
+            "The `fit_transform` method is not implemented for this processor."
+        )
+
+    def transform(self, X, *args, **kwargs):
+        raise NotImplementedError(
+            "The `transform` method is not implemented for this processor."
         )
 
     def _process_transform_input(self, X, **kwargs):
@@ -2926,7 +2932,7 @@ class BaseProcessor(TransformationMixin):
         if cache_file_name and os.path.exists(cache_file_name):
             if isinstance(cache_file_name, Path):
                 cache_file_name = cache_file_name.resolve().as_posix()
-            self.config = self.config_class.from_config_file(cache_file_name)
+            self.config = self._config_class.from_config_file(cache_file_name)
             return self
         else:
             raise NonExistentCacheError

@@ -64,7 +64,7 @@ class MinPrevalencePlotterConfig(FeatureSelectorPlotterConfig):
 
 @dataclass
 class MinPrevalencePlotterConfigForMetagenomics(MinPrevalencePlotterConfig):
-    dataset_name: str = field(default="metagenomics", init=False, repr=False)
+    experiment_name: str = field(default="metagenomics", init=False, repr=False)
     _fit_input_feature_types: List[Type] = field(
         default_factory=lambda: [get_feature("Abundance"), get_feature("Abundance")],
         init=False,
@@ -87,7 +87,7 @@ class MinPrevalencePlotterConfigForMetagenomics(MinPrevalencePlotterConfig):
 
 @dataclass
 class MinPrevalencePlotterConfigForOTU(MinPrevalencePlotterConfigForMetagenomics):
-    dataset_name: str = field(default="otu", init=False, repr=False)
+    experiment_name: str = field(default="otu", init=False, repr=False)
     _fit_input_feature_types: List[Type] = field(
         default_factory=lambda: [get_feature("Abundance"), get_feature("Abundance")],
         init=False,
@@ -104,7 +104,7 @@ class MinPrevalencePlotterConfigForOTU(MinPrevalencePlotterConfigForMetagenomics
 
 @dataclass
 class MinPrevalencePlotterConfigForASV(MinPrevalencePlotterConfigForMetagenomics):
-    dataset_name: str = field(default="asv", init=False, repr=False)
+    experiment_name: str = field(default="asv", init=False, repr=False)
     _fit_input_feature_types: List[Type] = field(
         default_factory=lambda: [get_feature("Abundance"), get_feature("Abundance")],
         init=False,
@@ -120,7 +120,7 @@ class MinPrevalencePlotterConfigForASV(MinPrevalencePlotterConfigForMetagenomics
 
 @dataclass
 class MinPrevalencePlotterConfigForGenomics(MinPrevalencePlotterConfig):
-    dataset_name: str = field(default="genomics", init=False, repr=False)
+    experiment_name: str = field(default="genomics", init=False, repr=False)
     _input_feature_types: List[Type] = field(
         default_factory=lambda: [
             (get_feature("ReadCount"), get_feature("GenomicVariant")),
@@ -133,7 +133,7 @@ class MinPrevalencePlotterConfigForGenomics(MinPrevalencePlotterConfig):
 
 @dataclass
 class MinPrevalencePlotterConfigForSNP(MinPrevalencePlotterConfig):
-    dataset_name: str = field(default="snp", init=False, repr=False)
+    experiment_name: str = field(default="snp", init=False, repr=False)
     _fit_input_feature_types: List[Type] = field(
         default_factory=lambda: [
             get_feature("GenomicVariant"),
@@ -154,7 +154,7 @@ class MinPrevalencePlotterConfigForSNP(MinPrevalencePlotterConfig):
 
 @dataclass
 class MinPrevalencePlotterConfigForReadCount(MinPrevalencePlotterConfig):
-    dataset_name: str = field(default="read_count", init=False, repr=False)
+    experiment_name: str = field(default="read_count", init=False, repr=False)
     _fit_input_feature_types: List[Type] = field(
         default_factory=lambda: [get_feature("ReadCount"), get_feature("ReadCount")],
         init=False,
@@ -169,7 +169,7 @@ class MinPrevalencePlotterConfigForReadCount(MinPrevalencePlotterConfig):
 
 @dataclass
 class MinPrevalencePlotterConfigForProteomics(MinPrevalencePlotterConfig):
-    dataset_name: str = field(default="proteomics", init=False, repr=False)
+    experiment_name: str = field(default="proteomics", init=False, repr=False)
     _fit_input_feature_types: List[Type] = field(
         default_factory=lambda: [get_feature("Expression"), get_feature("Expression")],
         init=False,
@@ -184,7 +184,7 @@ class MinPrevalencePlotterConfigForProteomics(MinPrevalencePlotterConfig):
 
 @dataclass
 class MinPrevalencePlotterConfigForMaldi(MinPrevalencePlotterConfig):
-    dataset_name: str = field(default="maldi", init=False, repr=False)
+    experiment_name: str = field(default="maldi", init=False, repr=False)
     _fit_input_feature_types: List[Type] = field(
         default_factory=lambda: [
             get_feature("PeakIntensity"),
@@ -204,7 +204,7 @@ class MinPrevalencePlotterConfigForMaldi(MinPrevalencePlotterConfig):
 
 
 class MinPrevalenceFeatureSelectorPlotter(FeatureSelectorPlotter):
-    config_class = MinPrevalencePlotterConfig
+    _config_class = MinPrevalencePlotterConfig
     config: MinPrevalencePlotterConfig
 
     def __init__(

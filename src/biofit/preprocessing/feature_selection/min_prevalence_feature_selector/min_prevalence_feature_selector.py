@@ -97,7 +97,7 @@ class MinPrevalenceFeatureSelectorConfig(FeatureSelectorConfig):
 class MinPrevalenceFeatureSelectorConfigForMetagenomics(
     MinPrevalenceFeatureSelectorConfig
 ):
-    dataset_name: str = field(default="metagenomics", init=False, repr=False)
+    experiment_name: str = field(default="metagenomics", init=False, repr=False)
     _fit_input_feature_types: List[Tuple[Type, Type]] = field(
         default_factory=lambda: [(get_feature("Abundance"), get_feature("ReadCount"))],
         init=False,
@@ -114,7 +114,7 @@ class MinPrevalenceFeatureSelectorConfigForMetagenomics(
 
 @dataclass
 class MinPrevalenceFeatureSelectorConfigForOTU(MinPrevalenceFeatureSelectorConfig):
-    dataset_name: str = field(default="otu", init=False, repr=False)
+    experiment_name: str = field(default="otu", init=False, repr=False)
     _fit_input_feature_types: List[Type] = field(
         default_factory=lambda: [get_feature("Abundance")], init=False, repr=False
     )
@@ -151,7 +151,7 @@ class MinPrevalenceFeatureSelectorConfigForOTU(MinPrevalenceFeatureSelectorConfi
 
 @dataclass
 class MinPrevalenceFeatureSelectorConfigForSNP(MinPrevalenceFeatureSelectorConfig):
-    dataset_name: str = field(default="snp", init=False, repr=False)
+    experiment_name: str = field(default="snp", init=False, repr=False)
     _fit_input_feature_types: List[Type] = field(
         default_factory=lambda: [get_feature("GenomicVariant")], init=False, repr=False
     )
@@ -176,7 +176,7 @@ class MinPrevalenceFeatureSelector(FeatureSelector):
         The minimum value that we consider something to be present. Defaults to None.
     """
 
-    config_class = MinPrevalenceFeatureSelectorConfig
+    _config_class = MinPrevalenceFeatureSelectorConfig
     config: MinPrevalenceFeatureSelectorConfig
 
     def __init__(

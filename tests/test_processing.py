@@ -1,5 +1,4 @@
 import copy
-import inspect
 import shutil
 import unittest
 from dataclasses import dataclass, field
@@ -7,13 +6,12 @@ from pathlib import Path
 from typing import List, Optional, Type, Union
 from unittest.mock import patch
 
+import biofit.config
 import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pytest
 from biocore import DataHandler
-
-import biofit.config
 from biofit.integration.biosets import get_feature
 from biofit.processing import (
     BaseProcessor,
@@ -24,7 +22,8 @@ from biofit.processing import (
 )
 from biofit.utils import version
 from biofit.utils.fingerprint import generate_cache_dir
-from tests.utils import create_bioset, require_biosets, require_datasets
+
+from tests.utils import create_bioset, require_biosets, require_datasets, require_polars
 
 # Mock feature types for testing purposes
 FEATURE_TYPES = Union[Type, tuple]
@@ -81,12 +80,12 @@ class MockModel(BaseProcessor):
     Implements the necessary _fit_* and _predict_* methods.
     """
 
-    config_class = MockProcessorConfig
+    _config_class = MockProcessorConfig
     config: MockProcessorConfig
 
     def __init__(self, config: Optional[MockProcessorConfig] = None, **kwargs):
         # Initialize the BaseProcessor with the given configuration
-        super().__init__(config=config or self.config_class(**kwargs))
+        super().__init__(config=config or self._config_class(**kwargs))
         self.post_fit = lambda x: x
 
     @sync_backup_config
@@ -258,7 +257,7 @@ class MockPreprocessor(BaseProcessor):
     Implements the necessary _fit_* and _predict_* methods.
     """
 
-    config_class = MockProcessorConfig
+    _config_class = MockProcessorConfig
     config: MockProcessorConfig
 
     def __init__(self, config: Optional[MockProcessorConfig] = None, **kwargs):
@@ -554,11 +553,11 @@ class TestMockModel(unittest.TestCase):
         # target_formats
         func, to_format = self.preprocessor._get_target_func(
             funcs=self.funcs,
-            source_format="pandas",
-            target_formats=["polars", "arrow"],
+            source_format="numpy",
+            target_formats=["pandas", "arrow"],
         )
-        self.assertEqual(func.__name__, "_fit_polars")
-        self.assertEqual(to_format, "polars")
+        self.assertEqual(func.__name__, "_fit_pandas")
+        self.assertEqual(to_format, "pandas")
 
     def test_set_input_columns_and_arity(self):
         result = self.preprocessor._set_input_columns_and_arity(
@@ -991,8 +990,19 @@ class TestMockModel(unittest.TestCase):
             input_feature_types=[get_feature("GenomicVariant")],
             raise_if_missing=False,
         )
-        # Should return None values due to invalid feature types
-        self.assertEqual(result, (None, None, None, None, None, None, None))
+        # Should return all columns since it doesn't match the feature type
+        self.assertEqual(
+            result,
+            (
+                ["feature_0", "feature_1", "feature_2", "feature_3", "feature_4"],
+                [0, 1, 2, 3, 4],
+                [],
+                None,
+                None,
+                None,
+                None,
+            ),
+        )
 
     def test_get_columns_mismatched_arity(self):
         """Test _get_columns with mismatched arity between input_columns and args"""
@@ -1448,23 +1458,22 @@ class TestMockModel(unittest.TestCase):
         X = DataHandler.to_dataset(self.X)
         y = DataHandler.to_dataset(self.y)
         original_fingerprint = X._fingerprint
-        parameters = inspect.signature(self.model._fit_sklearn).parameters
+        original_target_fingerprint = y._fingerprint
         with patch.object(
             self.model, "_fit_sklearn", wraps=self.model._fit_sklearn
-        ) as mock_fit, patch("biofit.processing.BaseProcessor._validate_fit_func_args"):
+        ) as mock_fit:
             self.model._fit_sklearn.__name__ = "_fit_sklearn"
-            # change signature of fit method
-            self.model._fit_sklearn.__signature__ = inspect.Signature(
-                parameters=list(parameters.values())
-            )
             self.model.fit(X, y)
+
+        # Make sure the fingerprint didn't change after fit
+        self.assertEqual(original_target_fingerprint, y._fingerprint)
+        self.assertEqual(original_target_fingerprint, "643b0a98d71c180a")
 
         mock_fit.assert_called_once()
         output_no_cache = self.model.predict(X)
 
         # Calculate the fingerprint of the output dataset without cache
         fingerprint_no_cache = output_no_cache._fingerprint
-
         with patch.object(
             self.model, "_fit_sklearn", wraps=self.model._fit_sklearn
         ) as mock_fit:
@@ -1493,9 +1502,11 @@ class TestMockModel(unittest.TestCase):
         pd.testing.assert_frame_equal(output_no_cache, output_with_cache)
         # Compare the fingerprints
         self.assertEqual(original_fingerprint, X._fingerprint)
+        self.assertEqual(original_fingerprint, "d89db52fb3a40be9")
         self.assertEqual(fingerprint_no_cache, fingerprint_with_cache)
-        self.assertEqual(fingerprint_no_cache, fingerprint_with_cache)
+        self.assertEqual(fingerprint_no_cache, "91acea130eb575e8")
         self.assertNotEqual(fingerprint_no_cache, other_fingerprint_with_cache)
+        self.assertEqual(other_fingerprint_with_cache, "950ec73181f227a8")
 
     def test_parse_fingerprint(self):
         fingerprint = "base_fingerprint"
@@ -2037,6 +2048,7 @@ class TestMockModel(unittest.TestCase):
                 out_format_kwargs={},
             )
 
+    @require_polars
     def test_process_transform_batch_output_valid(self):
         """
         Test _process_transform_batch_output with valid output.

@@ -165,7 +165,7 @@ class CumulativeSumScalerConfigForMetagenomics(CumulativeSumScalerConfig):
         init=False,
         repr=False,
     )
-    dataset_name: str = field(default="metagenomics", init=False, repr=False)
+    experiment_name: str = field(default="metagenomics", init=False, repr=False)
 
 
 @dataclass
@@ -182,7 +182,7 @@ class CumulativeSumScalerConfigForOTU(CumulativeSumScalerConfig):
     _transform_input_feature_types: List[Type] = field(
         default_factory=lambda: [get_feature("Abundance")], init=False, repr=False
     )
-    dataset_name: str = field(default="otu", init=False, repr=False)
+    experiment_name: str = field(default="otu", init=False, repr=False)
 
 
 class CumulativeSumScaler(Scaler):
@@ -191,7 +191,7 @@ class CumulativeSumScaler(Scaler):
     """
 
     output_dtype = "float64"
-    config_class = CumulativeSumScalerConfig
+    _config_class = CumulativeSumScalerConfig
     config: CumulativeSumScalerConfig
 
     @sync_backup_config
